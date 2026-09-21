@@ -1,0 +1,24 @@
+{
+  "name": "phoenixai-studio",
+  "version": "1.0.0",
+  "description": "Premium Resume, Portfolio & Cover Letter Design Showcase",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "reset-password": "node scripts/reset-admin-password.js",
+    "seed-remote": "node --env-file=.env.local scripts/seed-remote.js",
+    "test": "node --test tests/storage.test.js",
+    "test:smoke": "node test-smoke.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "body-parser": "^1.20.2",
+    "dotenv": "^17.4.2",
+    "@vercel/blob": "^0.23.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

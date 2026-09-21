@@ -1,0 +1,38 @@
+name: Smoke Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  deployment:
+    types: [created]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Wait for deployment
+        if: github.event_name == 'deployment'
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 30
+
+      - name: Run smoke test
+        run: |
+          if [ -n "${{ github.event.deployment_status.environment_url }}" ]; then
+            BASE_URL="${{ github.event.deployment_status.environment_url }}" node test-smoke.js
+          elif [ -n "${{ github.event.deployment.environment_url }}" ]; then
+            BASE_URL="${{ github.event.deployment.environment_url }}" node test-smoke.js
+          else
+            echo "No deployment URL found, skipping smoke test"
+            exit 0
+          fi
+        env:
+          BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment.environment_url }}
