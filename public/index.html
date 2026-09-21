@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhoenixAI Studio — AI Solutions &amp; Web Design for Growing Businesses</title>
+    <meta name="description" content="PhoenixAI Studio builds AI-powered websites, intelligent agents, and automation for small and growing businesses. Professional identity, reimagined.">
+    <meta name="theme-color" content="#FF6A00">
+    <link rel="canonical" href="https://phoenixaistudio.com/">
+
+    <!-- Open Graph / social sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PhoenixAI Studio">
+    <meta property="og:url" content="https://phoenixaistudio.com/">
+    <meta property="og:title" content="PhoenixAI Studio — AI Solutions &amp; Web Design">
+    <meta property="og:description" content="AI-powered websites, intelligent agents, and automation for ambitious businesses ready to move faster.">
+    <meta property="og:image" content="https://phoenixaistudio.com/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PhoenixAI Studio — AI Solutions &amp; Web Design">
+    <meta name="twitter:description" content="AI-powered websites, intelligent agents, and automation for ambitious businesses ready to move faster.">
+    <meta name="twitter:image" content="https://phoenixaistudio.com/og-image.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Structured data: lets search engines show the brand as an organisation -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "PhoenixAI Studio",
+      "url": "https://phoenixaistudio.com/",
+      "logo": "https://phoenixaistudio.com/favicon-256.png",
+      "image": "https://phoenixaistudio.com/og-image.png",
+      "description": "PhoenixAI Studio builds AI-powered websites, intelligent agents, and automation for small and growing businesses.",
+      "serviceType": ["Web Design", "AI Agent Development", "Automation", "Resume and Portfolio Design"]
+    }
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Left: Brand -->
+                <div class="brand-section">
+                    <a href="/" class="logo" aria-label="PhoenixAI Studio — Home">
+                        <div class="logo-container">
+                            <img id="header-logo" src="/uploads/logo-cutout.png" alt="PhoenixAI Studio" width="285" height="200" decoding="async" fetchpriority="high">
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Center: Navigation -->
+                <nav class="nav">
+                    <div class="nav-dropdown">
+                        <a href="#services" class="nav-link solutions-link">Solutions</a>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-section">
+                                <span class="dropdown-section-title">AI Solutions</span>
+                                <a href="#ai-agents" class="dropdown-item">AI Agents</a>
+                                <a href="#ai-agents-demo" class="dropdown-item">Demo AI Agents</a>
+                            </div>
+                            <div class="dropdown-section">
+                                <span class="dropdown-section-title">Digital Experiences</span>
+                                <a href="#demo-websites" class="dropdown-item">Demo Websites</a>
+                                <a href="#services" class="dropdown-item">AI Services</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="nav-dropdown">
+                        <a href="#career-builder" class="nav-link career-link">Career</a>
+                        <div class="dropdown-menu">
+                            <a href="#resume" class="dropdown-item">Resume Builder</a>
+                            <a href="#portfolio" class="dropdown-item">Portfolio Builder</a>
+                            <a href="#cover-letter" class="dropdown-item">Cover Letter Builder</a>
+                        </div>
+                    </div>
+                    <a href="#packages" class="nav-link">Packages</a>
+                    <a href="#about" class="nav-link">About</a>
+                </nav>
+                
+                <!-- Right: Actions -->
+                <div class="nav-actions">
+                    <a href="#inquiry" class="cta-button">Contact Us</a>
+                </div>
+                
+                <!-- Mobile Menu Trigger -->
+                <button type="button" class="mobile-menu-trigger" onclick="toggleMobileMenu()" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="mobile-menu" id="mobile-menu">
+                <div class="mobile-menu-content">
+                    <button class="mobile-menu-close" onclick="toggleMobileMenu()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <nav class="mobile-nav">
+                        <div class="mobile-nav-group">
+                            <span class="mobile-nav-section">Solutions</span>
+                            <a href="#ai-agents" class="mobile-nav-link">AI Agents</a>
+                            <a href="#ai-agents-demo" class="mobile-nav-link">Demo AI Agents</a>
+                            <a href="#demo-websites" class="mobile-nav-link">Demo Websites</a>
+                            <a href="#services" class="mobile-nav-link">AI Services</a>
+                        </div>
+                        <div class="mobile-nav-group">
+                            <span class="mobile-nav-section">Career</span>
+                            <a href="#resume" class="mobile-nav-link">Resume Builder</a>
+                            <a href="#portfolio" class="mobile-nav-link">Portfolio Builder</a>
+                            <a href="#cover-letter" class="mobile-nav-link">Cover Letter Builder</a>
+                        </div>
+                        <a href="#packages" class="mobile-nav-link">Packages</a>
+                        <a href="#about" class="mobile-nav-link">About</a>
+                    </nav>
+                    <div class="mobile-menu-cta">
+                        <a href="#inquiry" class="cta-button" onclick="toggleMobileMenu()">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <img src="/uploads/logo-cutout.png" alt="" aria-hidden="true" class="hero-watermark" width="285" height="200" fetchpriority="high">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Built different. Powered by AI.</h1>
+                <div class="hero-flameline" aria-hidden="true"></div>
+                <p class="hero-subtitle">Scroll-stopping websites, smart AI agents and automations that make your brand impossible to ignore. No cookie-cutter templates. Just fire. 🔥</p>
+                <div class="hero-cta-group">
+                    <a href="#project-start" class="hero-cta">Let's build yours</a>
+                    <a href="#demo-websites" class="hero-cta-secondary">See the magic</a>
+                </div>
+                <div class="hero-tags">
+                    <span class="hero-tag">AI agents</span>
+                    <span class="hero-tag">Head-turning websites</span>
+                    <span class="hero-tag">Zero-effort automation</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Start Section -->
+    <section id="project-start" class="project-start-section">
+        <div class="container">
+            <div class="project-start-content">
+                <h2 class="project-start-title">Start Your Project</h2>
+                <p class="project-start-subtitle">Choose how PhoenixAI can help you transform your business</p>
+                <div class="project-start-grid">
+                    <a href="#demo-websites" class="project-start-card">
+                        <div class="project-start-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="3" y1="9" x2="21" y2="9"></line>
+                                <line x1="9" y1="21" x2="9" y2="9"></line>
+                            </svg>
+                        </div>
+                        <h3 class="project-start-card-title">Demo Websites</h3>
+                        <p class="project-start-card-description">Explore our portfolio of professionally designed websites and digital experiences</p>
+                        <span class="project-start-card-cta">View websites</span>
+                    </a>
+                    <a href="#ai-agents" class="project-start-card">
+                        <div class="project-start-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                                <path d="M12 12L2.1 12a10 10 0 0 0 9.9 10"></path>
+                                <path d="M12 12V2a10 10 0 0 1 10 10"></path>
+                            </svg>
+                        </div>
+                        <h3 class="project-start-card-title">AI Agents</h3>
+                        <p class="project-start-card-description">Discover intelligent AI agents that automate tasks and enhance customer experiences</p>
+                        <span class="project-start-card-cta">Explore AI agents</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Packages Section -->
+    <section id="packages" class="packages-section">
+        <div class="container">
+            <h2 class="section-title">Choose Your Package</h2>
+            <p class="section-subtitle">Professional packages designed to meet your needs</p>
+            <div class="package-category-tabs" id="package-category-tabs">
+                <!-- Category tabs loaded dynamically -->
+            </div>
+            <div class="packages-grid" id="packages-grid">
+                <!-- Packages loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Career Builder Section -->
+    <section id="career-builder" class="career-builder-section">
+        <div class="container">
+            <h2 class="section-title">Career Builder</h2>
+            <p class="section-subtitle">Build your complete professional identity</p>
+            <div class="career-builder-grid">
+                <div class="career-builder-card" data-category="resume">
+                    <div class="career-builder-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="career-builder-title">Resume Builder</h3>
+                    <p class="career-builder-description">Create and customize professional resumes that stand out to employers</p>
+                    <a href="#resume" class="career-builder-cta">Build Resume</a>
+                </div>
+                <div class="career-builder-card" data-category="portfolio">
+                    <div class="career-builder-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="career-builder-title">Portfolio Builder</h3>
+                    <p class="career-builder-description">Build a professional portfolio to showcase your work and achievements</p>
+                    <a href="#portfolio" class="career-builder-cta">Build Portfolio</a>
+                </div>
+                <div class="career-builder-card" data-category="cover-letter">
+                    <div class="career-builder-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="career-builder-title">Cover Letter Builder</h3>
+                    <p class="career-builder-description">Create tailored cover letters that complement your resume</p>
+                    <a href="#cover-letter" class="career-builder-cta">Build Cover Letter</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services-section">
+        <div class="container">
+            <h2 class="section-title">Our Services</h2>
+            <p class="section-subtitle">Professional services tailored to your business needs</p>
+            <div class="services-grid" id="services-grid">
+                <!-- Services loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Websites Section -->
+    <section id="demo-websites" class="demo-websites-section">
+        <div class="container">
+            <h2 class="section-title">Demo Websites</h2>
+            <p class="section-subtitle">Explore our website demos and discover the right design for your business</p>
+            <div class="demo-websites-cta">
+                <a href="#demo-websites-full" class="cta-button large">Explore Demo Websites</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Websites Full Page -->
+    <section id="demo-websites-full" class="demo-websites-full-section">
+        <div class="container">
+            <h2 class="section-title">Demo Websites</h2>
+            <p class="section-subtitle">Explore our website demos and discover the right design for your business</p>
+            
+            <!-- Search and Filter -->
+            <div class="demo-websites-controls">
+                <div class="search-container">
+                    <input type="text" id="demo-search" placeholder="Search demo websites..." class="search-input">
+                </div>
+                <div class="category-filters" id="demo-category-filters">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="business">Business</button>
+                    <button class="category-btn" data-category="portfolio">Portfolio</button>
+                    <button class="category-btn" data-category="ecommerce">E-commerce</button>
+                    <button class="category-btn" data-category="restaurant">Restaurant</button>
+                    <button class="category-btn" data-category="realestate">Real Estate</button>
+                    <button class="category-btn" data-category="agency">Agency</button>
+                    <button class="category-btn" data-category="landing">Landing Page</button>
+                    <button class="category-btn" data-category="education">Education</button>
+                    <button class="category-btn" data-category="healthcare">Healthcare</button>
+                </div>
+            </div>
+            
+            <!-- Featured Demos -->
+            <div class="featured-demos" id="featured-demos">
+                <h3 class="featured-title">Featured Websites</h3>
+                <div class="demo-websites-grid" id="featured-demos-grid">
+                    <!-- Featured demos loaded dynamically -->
+                </div>
+            </div>
+            
+            <!-- All Demos -->
+            <div class="all-demos" id="all-demos">
+                <h3 class="all-demos-title">All Demo Websites</h3>
+                <div class="demo-websites-grid" id="all-demos-grid">
+                    <!-- All demos loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Website Detail Page -->
+    <section id="demo-website-detail" class="demo-website-detail-section">
+        <div class="container">
+            <button class="back-button" onclick="showDemoWebsitesList()">← Back to Demo Websites</button>
+            <div class="demo-detail-content" id="demo-detail-content">
+                <!-- Demo detail loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Agents Section -->
+    <section id="ai-agents" class="ai-agents-section">
+        <div class="container">
+            <h2 class="section-title">AI Agents</h2>
+            <p class="section-subtitle">Intelligent AI agents designed to automate business workflows, customer interactions and repetitive tasks</p>
+            <div class="ai-agents-cta">
+                <a href="#ai-agents-demo" class="cta-button large">Explore AI Agents</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Agents Demo Page -->
+    <section id="ai-agents-demo" class="ai-agents-demo-section">
+        <div class="container">
+            <h2 class="section-title">Demo AI Agents</h2>
+            <p class="section-subtitle">Explore our AI agents and discover the right solution for your business</p>
+            
+            <!-- Search and Filter -->
+            <div class="ai-agents-controls">
+                <div class="search-container">
+                    <input type="text" id="ai-agents-search" placeholder="Search AI agents..." class="search-input">
+                </div>
+                <div class="category-filters" id="ai-agents-category-filters">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="customer-support">Customer Support</button>
+                    <button class="category-btn" data-category="sales">Sales</button>
+                    <button class="category-btn" data-category="marketing">Marketing</button>
+                    <button class="category-btn" data-category="lead-generation">Lead Generation</button>
+                    <button class="category-btn" data-category="appointment-booking">Appointment Booking</button>
+                    <button class="category-btn" data-category="whatsapp">WhatsApp</button>
+                    <button class="category-btn" data-category="ecommerce">E-commerce</button>
+                    <button class="category-btn" data-category="realestate">Real Estate</button>
+                    <button class="category-btn" data-category="education">Education</button>
+                    <button class="category-btn" data-category="hr">HR</button>
+                    <button class="category-btn" data-category="custom">Custom</button>
+                </div>
+            </div>
+            
+            <!-- Featured Agents -->
+            <div class="featured-agents" id="featured-agents">
+                <h3 class="featured-title">Featured AI Agents</h3>
+                <div class="ai-agents-grid" id="featured-agents-grid">
+                    <!-- Featured agents loaded dynamically -->
+                </div>
+            </div>
+            
+            <!-- All Agents -->
+            <div class="all-agents" id="all-agents">
+                <h3 class="all-agents-title">All AI Agents</h3>
+                <div class="ai-agents-grid" id="all-agents-grid">
+                    <!-- All agents loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Agent Detail Page -->
+    <section id="ai-agent-detail" class="ai-agent-detail-section">
+        <div class="container">
+            <button class="back-button" onclick="showAIAgentsList()">← Back to AI Agents</button>
+            <div class="ai-agent-detail-content" id="ai-agent-detail-content">
+                <!-- Agent detail loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Section -->
+    <section id="templates" class="featured-section">
+        <div class="container">
+            <h2 class="section-title">Featured Collection</h2>
+            
+            <!-- Category Navigation -->
+            <div class="category-nav">
+                <button class="category-btn active" data-category="all">All</button>
+                <button class="category-btn" data-category="resume">Resume</button>
+                <button class="category-btn" data-category="portfolio">Portfolio</button>
+                <button class="category-btn" data-category="cover-letter">Cover Letter</button>
+            </div>
+            
+            <div class="templates-grid" id="featured-templates">
+                <!-- Templates loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2 class="section-title">About PhoenixAI Studio</h2>
+            <p class="section-subtitle">Professional Identity, Reimagined.</p>
+            <div class="about-content">
+                <p>We craft premium resume, portfolio, and cover letter designs that help professionals make lasting first impressions. Our PhoenixAI-powered approach combines elegant aesthetics with strategic design to showcase your unique professional identity.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Section -->
+    <section class="trust-section">
+        <div class="container">
+            <h2 class="section-title">Why Choose PhoenixAI Studio</h2>
+            <p class="section-subtitle">Built around practical AI, thoughtful design, and reliable digital experiences.</p>
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h3>ATS Friendly</h3>
+                    <p>Optimized for applicant tracking systems</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5 10-5-10-5-10 5 10 5-10 5-10-5 10-5z"></path>
+                        </svg>
+                    </div>
+                    <h3>Custom Made</h3>
+                    <p>Unique designs tailored to your industry</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3>Professional Impact</h3>
+                    <p>Make a lasting first impression</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3>Confidential</h3>
+                    <p>Your information stays secure</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Fast & Reliable</h3>
+                    <p>Quick turnaround without compromising quality</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                        </svg>
+                    </div>
+                    <h3>Dedicated Support</h3>
+                    <p>Personal assistance throughout the process</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inquiry Section -->
+    <section id="inquiry" class="inquiry-section">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <p class="section-subtitle">Ready to elevate your professional identity? Let's discuss your needs.</p>
+            <form class="inquiry-form" id="inquiry-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="inquiry-name">Full Name</label>
+                        <input type="text" id="inquiry-name" name="name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inquiry-email">Email Address</label>
+                        <input type="email" id="inquiry-email" name="email" placeholder="Enter your email address" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="inquiry-phone">Phone Number (Optional)</label>
+                        <input type="tel" id="inquiry-phone" name="phone" placeholder="Enter your phone number">
+                    </div>
+                    <div class="form-group">
+                        <label for="inquiry-service">Service / Module</label>
+                        <select id="inquiry-service" name="service" required>
+                            <option value="">Select a service</option>
+                            <option value="Career Builder">Career Builder</option>
+                            <option value="Website Service">Website Service</option>
+                            <option value="AI Agent Service">AI Agent Service</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inquiry-budget">Budget (Optional)</label>
+                    <select id="inquiry-budget" name="budget">
+                        <option value="">Select budget range</option>
+                        <option value="Under $1,000">Under $1,000</option>
+                        <option value="$1,000 - $5,000">$1,000 - $5,000</option>
+                        <option value="$5,000 - $10,000">$5,000 - $10,000</option>
+                        <option value="$10,000 - $25,000">$10,000 - $25,000</option>
+                        <option value="$25,000 - $50,000">$25,000 - $50,000</option>
+                        <option value="Over $50,000">Over $50,000</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inquiry-message">Message / Project Details</label>
+                    <textarea id="inquiry-message" name="message" rows="5" placeholder="Tell us about your project or inquiry..." required></textarea>
+                </div>
+                <p id="inquiry-error" class="inquiry-error" role="alert" style="display: none;"></p>
+                <button type="submit" class="cta-button large">Submit Inquiry</button>
+            </form>
+            <div id="inquiry-success" class="inquiry-success" role="status" aria-live="polite" style="display: none;">
+                <p>Thank you. Your inquiry has been received. We'll get back to you soon.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="final-cta">
+        <div class="container">
+            <h2 class="cta-title">Ready to build your<br>professional profile?</h2>
+            <p class="cta-subtitle">Resume • Portfolio • Cover Letter</p>
+            <a href="#templates" class="cta-button large">Start Your Profile</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section footer-brand">
+                    <img id="footer-logo" src="/uploads/logo-cutout.png" alt="PhoenixAI Studio" width="285" height="200" loading="lazy" decoding="async">
+                    <p>Professional Identity, Reimagined.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#packages">Packages</a></li>
+                        <li><a href="#career-builder">Career Builder</a></li>
+                        <li><a href="#resume" data-category-link>Resume Builder</a></li>
+                        <li><a href="#portfolio" data-category-link>Portfolio Builder</a></li>
+                        <li><a href="#cover-letter" data-category-link>Cover Letter Builder</a></li>
+                        <li><a href="#demo-websites">Demo Websites</a></li>
+                        <li><a href="#ai-agents">AI Agents</a></li>
+                        <li><a href="#about">About</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section footer-social">
+                    <h4>Connect</h4>
+                    <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="PhoenixAI Studio on Instagram">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="footer-year">2026</span> PhoenixAI Studio. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Template Preview</h3>
+                <button type="button" class="close-button" onclick="closeModal()" aria-label="Close preview">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-container">
+                    <img id="modal-image" alt="Template Preview">
+                    <div class="zoom-controls">
+                        <button type="button" onclick="zoomOut()" aria-label="Zoom out">-</button>
+                        <span id="zoom-level">100%</span>
+                        <button type="button" onclick="zoomIn()" aria-label="Zoom in">+</button>
+                    </div>
+                </div>
+                <div class="modal-info">
+                    <p id="modal-description"></p>
+                    <div class="modal-tags">
+                        <span id="modal-category" class="tag"></span>
+                        <span id="modal-style" class="tag"></span>
+                    </div>
+                    <div class="modal-actions">
+                        <a id="modal-portfolio-btn" href="#" target="_blank" rel="noopener noreferrer" class="portfolio-button" style="display: none;">Open Portfolio</a>
+                        <a id="modal-download-btn" href="#" download class="download-button">Download PDF</a>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="nav-button" onclick="prevTemplate()">← Previous</button>
+                <button type="button" class="nav-button" onclick="nextTemplate()">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+    <script src="phoenix-pet.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,3085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PhoenixAI Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        html, body {
+            font-family: var(--font-ui);
+        }
+        
+        h1, h2, h3, h4, h5, h6,
+        .stat-number {
+            font-family: var(--font-display);
+        }
+
+        .search-result-group-title,
+        .module-status,
+        .module-order,
+        .result-category,
+        .templates-table td span {
+            font-family: var(--font-accent);
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(255, 106, 0, 0.10) 0%, transparent 45%),
+                radial-gradient(circle at 85% 70%, rgba(194, 65, 12, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 15% 30%, rgba(124, 45, 18, 0.06) 0%, transparent 35%),
+                linear-gradient(180deg, #050505 0%, #080706 45%, #0D0C0A 100%);
+        }
+        
+        .admin-sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, rgba(20, 17, 14, 0.85), rgba(8, 8, 7, 0.80));
+            backdrop-filter: blur(28px);
+            border-right: 1px solid rgba(255, 106, 0, 0.30);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+            padding: 25px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .admin-logo {
+            margin-bottom: 35px;
+            text-align: center;
+        }
+        
+        .admin-logo img {
+            max-width: 180px;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .admin-logo .logo-container img {
+            height: 100%;
+            width: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        .logo-container {
+            background: transparent;
+            border: none;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+            padding: 4px 0;
+            width: auto;
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Groups (Content / Activity / System) — a labelled cluster with a
+           little breathing room above it, instead of one flat list. */
+        .admin-nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 14px;
+        }
+
+        .admin-nav-group-title {
+            font-family: var(--font-accent);
+            font-size: 0.72em;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(201, 162, 39, 0.75);
+            padding: 10px 18px 6px;
+        }
+
+        .admin-nav-item {
+            background: transparent;
+            border: none;
+            border-left: 3px solid transparent;
+            color: #D4D4D4;
+            padding: 11px 14px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            font-size: 0.94em;
+            letter-spacing: 0.2px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            width: 100%;
+        }
+
+        .admin-nav-icon {
+            flex-shrink: 0;
+            opacity: 0.72;
+            transition: opacity 0.2s ease;
+        }
+
+        .admin-nav-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-nav-badge {
+            flex-shrink: 0;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            background: rgba(255, 106, 0, 0.18);
+            border: 1px solid rgba(255, 106, 0, 0.40);
+            color: #FFB07A;
+            font-size: 0.72em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-ui);
+        }
+
+        .admin-nav-item:hover {
+            background: rgba(255, 106, 0, 0.10);
+            color: #F5F5F5;
+            transform: translateX(4px);
+        }
+
+        .admin-nav-item:hover .admin-nav-icon {
+            opacity: 1;
+        }
+
+        .admin-nav-item.active {
+            background: linear-gradient(135deg, rgba(255, 106, 0, 0.15), rgba(194, 65, 12, 0.12));
+            color: #F5F5F5;
+            border: 1px solid rgba(255, 106, 0, 0.35);
+            border-left: 3px solid var(--phoenix-orange);
+            box-shadow: 0 4px 15px rgba(255, 106, 0, 0.15);
+        }
+
+        .admin-nav-item.active .admin-nav-icon {
+            opacity: 1;
+            color: var(--phoenix-orange);
+        }
+
+        .admin-nav-item.active .admin-nav-badge {
+            background: rgba(255, 106, 0, 0.30);
+            color: #FFF3E9;
+        }
+        
+        .admin-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 35px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 35px;
+            padding: 22px 0 25px;
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: linear-gradient(180deg, rgba(5,5,5,0.97) 70%, rgba(5,5,5,0));
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+        
+        .header-left {
+            flex: 1;
+        }
+        
+        .admin-header h1 {
+            color: #F5F5F5;
+            font-size: 2em;
+            letter-spacing: 0.01em;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .page-description {
+            color: #A0A0A0;
+            font-size: 0.95em;
+            letter-spacing: 0.3px;
+            margin: 0;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(13, 12, 10, 0.75);
+            border: 1px solid rgba(255, 106, 0, 0.24);
+            border-radius: 12px;
+            padding: 10px 16px;
+            width: 320px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-container:focus-within {
+            border-color: rgba(255, 106, 0, 0.50);
+            box-shadow: 0 0 20px rgba(255, 106, 0, 0.15);
+        }
+        
+        .search-icon {
+            color: #A0A0A0;
+            flex-shrink: 0;
+        }
+        
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #F5F5F5;
+            font-size: 0.95em;
+            padding: 0 12px;
+            outline: none;
+            letter-spacing: 0.3px;
+        }
+        
+        .search-input::placeholder {
+            color: #707070;
+        }
+        
+        .search-clear {
+            background: transparent;
+            border: none;
+            color: #A0A0A0;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .search-clear:hover {
+            background: rgba(255, 106, 0, 0.20);
+            color: #F5F5F5;
+        }
+        
+        .search-results {
+            position: fixed;
+            top: 140px;
+            right: 35px;
+            width: 400px;
+            max-height: 500px;
+            background: linear-gradient(145deg, rgba(20, 17, 14, 0.95), rgba(8, 8, 7, 0.95));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+            border-radius: 16px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.60);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .notification-container {
+            position: relative;
+        }
+
+        .notification-button {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(13, 12, 10, 0.70);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+            border-radius: 10px;
+            color: #F5F5F5;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .notification-button:hover {
+            background: rgba(255, 106, 0, 0.15);
+            border-color: rgba(255, 106, 0, 0.50);
+            color: var(--phoenix-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 106, 0, 0.15);
+        }
+
+        .notification-button:active {
+            transform: translateY(0);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: var(--phoenix-orange);
+            color: #0D0C0A;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(255, 106, 0, 0.40);
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 380px;
+            max-height: 450px;
+            background: linear-gradient(135deg, rgba(20, 17, 14, 0.96), rgba(8, 8, 7, 0.94));
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.60);
+            z-index: 1000;
+            display: none;
+        }
+
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .notification-dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(255, 106, 0, 0.20);
+        }
+
+        .notification-dropdown-header h3 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 600;
+            color: #F5F5F5;
+            margin: 0;
+        }
+
+        .mark-all-read {
+            background: transparent;
+            border: none;
+            color: var(--phoenix-orange);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mark-all-read:hover {
+            text-decoration: underline;
+        }
+
+        .notification-list {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .notification-item {
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .notification-item:hover {
+            background: rgba(255, 106, 0, 0.08);
+            border-left-color: rgba(255, 106, 0, 0.40);
+        }
+
+        .notification-item.unread {
+            background: rgba(255, 106, 0, 0.05);
+            border-left-color: var(--phoenix-orange);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #F5F5F5;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            color: #A0A0A0;
+            font-size: 13px;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            color: #707070;
+            font-size: 12px;
+        }
+
+        .notification-dropdown-footer {
+            padding: 12px 18px;
+            border-top: 1px solid rgba(255, 106, 0, 0.20);
+        }
+
+        .notification-dropdown-footer a {
+            color: var(--phoenix-orange);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .notification-dropdown-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .no-notifications {
+            padding: 40px 20px;
+            text-align: center;
+            color: #707070;
+            font-size: 14px;
+        }
+
+        .search-filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-filter-bar .search-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-select {
+            padding: 10px 14px;
+            background: linear-gradient(135deg, rgba(25, 21, 17, 0.75), rgba(8, 8, 7, 0.68));
+            border: 1px solid rgba(255, 106, 0, 0.25);
+            border-radius: 10px;
+            color: #F5F5F5;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .filter-select:hover {
+            border-color: rgba(255, 106, 0, 0.40);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--phoenix-orange);
+        }
+
+        .filter-select option {
+            background: #0D0C0A;
+            color: #F5F5F5;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-new {
+            background: rgba(255, 106, 0, 0.15);
+            color: var(--phoenix-orange);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+        }
+
+        .status-contacted {
+            background: rgba(194, 65, 12, 0.15);
+            color: var(--ember-orange);
+            border: 1px solid rgba(194, 65, 12, 0.30);
+        }
+
+        .status-qualified {
+            background: rgba(255, 106, 0, 0.18);
+            color: var(--fire-orange);
+            border: 1px solid rgba(255, 106, 0, 0.40);
+        }
+
+        .status-converted {
+            background: rgba(255, 106, 0, 0.20);
+            color: var(--phoenix-orange);
+            border: 1px solid rgba(255, 106, 0, 0.50);
+        }
+
+        .status-lost {
+            background: rgba(127, 29, 29, 0.15);
+            color: #FF8A7A;
+            border: 1px solid rgba(220, 70, 50, 0.35);
+        }
+
+        .status-read {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .status-replied {
+            background: rgba(194, 65, 12, 0.15);
+            color: var(--ember-orange);
+            border: 1px solid rgba(194, 65, 12, 0.30);
+        }
+
+        .status-closed {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .status-unread {
+            background: rgba(255, 106, 0, 0.18);
+            color: var(--phoenix-orange);
+            border: 1px solid rgba(255, 106, 0, 0.40);
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .priority-low {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .priority-medium {
+            background: rgba(255, 106, 0, 0.15);
+            color: var(--phoenix-orange);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+        }
+
+        .priority-high {
+            background: rgba(127, 29, 29, 0.15);
+            color: #FF8A7A;
+            border: 1px solid rgba(220, 70, 50, 0.35);
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+            letter-spacing: 0.3px;
+        }
+
+        .type-lead {
+            background: rgba(255, 106, 0, 0.15);
+            color: var(--phoenix-orange);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+        }
+
+        .type-contact {
+            background: rgba(194, 65, 12, 0.15);
+            color: var(--ember-orange);
+            border: 1px solid rgba(194, 65, 12, 0.30);
+        }
+
+        .type-system {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .unread-row {
+            background: rgba(255, 106, 0, 0.05);
+        }
+
+        .inquiry-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .detail-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .detail-row strong {
+            color: #A0A0A0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .detail-row span {
+            color: #F5F5F5;
+            font-size: 14px;
+        }
+
+        .detail-row select {
+            background: linear-gradient(135deg, rgba(25, 21, 17, 0.75), rgba(8, 8, 7, 0.68));
+            border: 1px solid rgba(255, 106, 0, 0.25);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #F5F5F5;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .detail-row select option {
+            background: #0D0C0A;
+            color: #F5F5F5;
+        }
+
+        .message-text {
+            background: rgba(20, 17, 14, 0.50);
+            border: 1px solid rgba(255, 106, 0, 0.15);
+            border-radius: 8px;
+            padding: 16px;
+            color: #F5F5F5;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+            min-height: 42px;
+            padding: 12px 24px;
+            
+            background: rgba(13, 12, 10, 0.70);
+            border: 1px solid rgba(255, 106, 0, 0.35);
+            border-radius: 10px;
+            color: #F5F5F5;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .secondary-button:hover {
+            background: rgba(255, 106, 0, 0.12);
+            border-color: rgba(255, 106, 0, 0.50);
+            color: var(--phoenix-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 106, 0, 0.15);
+        }
+
+        .secondary-button:active {
+            transform: translateY(0);
+        }
+        
+        .search-results-content {
+            padding: 0;
+        }
+        
+        .search-results-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 106, 0, 0.20);
+            font-family: var(--font-display);
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #F5F5F5;
+            letter-spacing: 0.01em;
+        }
+        
+        .search-results-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        
+        .search-result-group {
+            padding: 12px 16px;
+            margin-bottom: 4px;
+        }
+        
+        .search-result-group-title {
+            font-family: var(--font-accent);
+            font-size: 0.85em;
+            font-weight: 600;
+            color: var(--phoenix-orange);
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #D4D4D4;
+            font-size: 0.95em;
+            letter-spacing: 0.3px;
+        }
+        
+        .search-result-item:hover {
+            background: rgba(255, 106, 0, 0.15);
+            color: #F5F5F5;
+        }
+        
+        .search-result-item .result-icon {
+            margin-right: 12px;
+            color: var(--phoenix-orange);
+        }
+        
+        .search-result-item .result-label {
+            flex: 1;
+        }
+        
+        .search-result-item .result-category {
+            font-family: var(--font-accent);
+            font-size: 0.8em;
+            color: #A0A0A0;
+            margin-left: 8px;
+        }
+        
+        .search-no-results {
+            padding: 30px 20px;
+            text-align: center;
+            color: #707070;
+            font-size: 0.95em;
+        }
+        
+        .settings-description {
+            color: #A0A0A0;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+            letter-spacing: 0.3px;
+        }
+        
+        .modules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .module-item {
+            background: linear-gradient(145deg, rgba(20, 17, 14, 0.75), rgba(8, 8, 7, 0.75));
+            border: 1px solid rgba(255, 106, 0, 0.20);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+        
+        .module-item:hover {
+            border-color: rgba(255, 106, 0, 0.35);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.40);
+        }
+        
+        .module-info {
+            flex: 1;
+        }
+        
+        .module-name {
+            font-family: var(--font-display);
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #F5F5F5;
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+        }
+        
+        .module-description {
+            color: #A0A0A0;
+            font-size: 0.9em;
+            letter-spacing: 0.3px;
+            margin-bottom: 12px;
+        }
+        
+        .module-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .module-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-family: var(--font-accent);
+            font-size: 0.8em;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        
+        .module-status.enabled {
+            background: rgba(255, 106, 0, 0.15);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+            color: var(--phoenix-orange);
+        }
+        
+        .module-status.disabled {
+            background: rgba(124, 45, 18, 0.15);
+            border: 1px solid rgba(124, 45, 18, 0.30);
+            color: var(--deep-ember);
+        }
+        
+        .module-order {
+            font-family: var(--font-accent);
+            font-size: 0.8em;
+            color: #707070;
+            letter-spacing: 0.3px;
+        }
+        
+        .module-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .module-order-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            
+            min-height: 36px;
+            padding: 8px 14px;
+            
+            background: rgba(255, 106, 0, 0.15);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+            border-radius: 8px;
+            color: var(--phoenix-orange);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            transition: all 0.25s ease;
+        }
+        
+        .module-order-btn:hover {
+            background: rgba(255, 106, 0, 0.25);
+            border-color: rgba(255, 106, 0, 0.50);
+            transform: translateY(-1px);
+        }
+
+        .module-order-btn:active {
+            transform: translateY(0);
+        }
+        
+        .module-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            
+            min-height: 36px;
+            padding: 8px 16px;
+            
+            background: rgba(255, 106, 0, 0.15);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+            border-radius: 8px;
+            color: var(--phoenix-orange);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            transition: all 0.25s ease;
+        }
+        
+        .module-edit-btn:hover {
+            background: rgba(255, 106, 0, 0.25);
+            border-color: rgba(255, 106, 0, 0.50);
+            transform: translateY(-1px);
+        }
+
+        .module-edit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .logout-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+            min-height: 40px;
+            padding: 10px 24px;
+            
+            background: rgba(255, 106, 0, 0.15);
+            border: 1px solid rgba(255, 106, 0, 0.40);
+            border-radius: 10px;
+            color: #F5F5F5;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            font-weight: 600;
+        }
+        
+        .logout-button:hover {
+            background: rgba(255, 106, 0, 0.25);
+            border-color: rgba(255, 106, 0, 0.60);
+            color: var(--phoenix-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 106, 0, 0.20);
+        }
+
+        .logout-button:active {
+            transform: translateY(0);
+        }
+        
+        .admin-section {
+            display: none;
+        }
+        
+        .admin-section.active {
+            display: block;
+        }
+
+        .admin-error {
+            background: rgba(127, 29, 29, 0.22);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 10px;
+            color: #fecaca;
+            margin-bottom: 24px;
+            padding: 14px 18px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(145deg, rgba(20, 17, 14, 0.82), rgba(8, 8, 7, 0.78));
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 106, 0, 0.20);
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.40);
+        }
+        
+        .stat-card:hover {
+            border-color: rgba(255, 106, 0, 0.35);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.55), 0 0 25px rgba(255, 106, 0, 0.18);
+            transform: translateY(-3px);
+        }
+        
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 2.8em;
+            font-weight: 600;
+            color: var(--phoenix-orange);
+            margin-bottom: 12px;
+            letter-spacing: 0.01em;
+            line-height: 1.1;
+        }
+        
+        .stat-label {
+            color: #A0A0A0;
+            font-size: 0.95em;
+            letter-spacing: 0.3px;
+            font-weight: 500;
+        }
+        
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .category-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            
+            min-height: 40px;
+            padding: 10px 20px;
+            
+            background: rgba(13, 12, 10, 0.60);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 106, 0, 0.25);
+            border-radius: 10px;
+            color: #F5F5F5;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.2px;
+            transition: all 0.25s ease;
+        }
+
+        .category-btn:hover {
+            border-color: rgba(255, 106, 0, 0.50);
+            background: rgba(255, 106, 0, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, rgba(255, 106, 0, 0.25), rgba(194, 65, 12, 0.18));
+            border-color: rgba(255, 106, 0, 0.60);
+            color: #F5F5F5;
+            box-shadow: 0 4px 16px rgba(255, 106, 0, 0.15);
+        }
+
+        .category-btn.active:hover {
+            background: linear-gradient(135deg, rgba(255, 106, 0, 0.35), rgba(194, 65, 12, 0.25));
+            border-color: rgba(255, 106, 0, 0.80);
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(5, 5, 5, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 106, 0, 0.20);
+            border-radius: 10px;
+            color: #F5F5F5;
+            font-size: 1em;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: rgba(255, 106, 0, 0.50);
+            box-shadow: 0 0 20px rgba(255, 106, 0, 0.15);
+        }
+
+        #service-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #service-modal.active {
+            display: flex;
+        }
+
+        .add-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+            min-height: 44px;
+            padding: 12px 28px;
+            
+            background: linear-gradient(135deg, #FF6A00, #E85E00);
+            color: #F5F5F5;
+            border: 1px solid rgba(255, 106, 0, 0.80);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+        }
+        
+        .add-button:hover {
+            background: linear-gradient(135deg, #FF7A1A, #FF6A00);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 106, 0, 0.30);
+        }
+
+        .add-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 12px rgba(255, 106, 0, 0.25);
+        }
+        
+        .templates-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+        }
+        
+        .templates-table th,
+        .templates-table td {
+            padding: 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .templates-table th {
+            background: var(--deep-charcoal);
+            color: #F5F5F5;
+            font-weight: 600;
+            font-size: 0.95em;
+            letter-spacing: 0.3px;
+        }
+
+        .templates-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .templates-table tr:hover {
+            background: rgba(255, 106, 0, 0.06);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            
+            min-height: 34px;
+            padding: 8px 16px;
+            
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            transition: all 0.25s ease;
+        }
+        
+        .edit-button {
+            background: rgba(255, 106, 0, 0.15);
+            color: var(--phoenix-orange);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+        }
+
+        .edit-button:hover {
+            background: rgba(255, 106, 0, 0.25);
+            border-color: rgba(255, 106, 0, 0.50);
+            color: var(--phoenix-orange);
+            transform: translateY(-1px);
+        }
+
+        .delete-button {
+            background: rgba(127, 29, 29, 0.15);
+            color: #FF8A7A;
+            border: 1px solid rgba(220, 70, 50, 0.35);
+        }
+
+        .delete-button:hover {
+            background: rgba(220, 70, 50, 0.25);
+            border-color: rgba(220, 70, 50, 0.60);
+            color: #FFB3A6;
+            transform: translateY(-1px);
+        }
+
+        .publish-toggle {
+            background: rgba(255, 106, 0, 0.15);
+            color: var(--phoenix-orange);
+            border: 1px solid rgba(255, 106, 0, 0.30);
+        }
+
+        .publish-toggle:hover {
+            background: rgba(255, 106, 0, 0.25);
+            border-color: rgba(255, 106, 0, 0.50);
+        }
+
+        .publish-toggle.unpublished {
+            background: rgba(124, 45, 18, 0.15);
+            color: var(--deep-ember);
+            border-color: rgba(124, 45, 18, 0.30);
+        }
+
+        .publish-toggle.unpublished:hover {
+            background: rgba(124, 45, 18, 0.25);
+            border-color: rgba(124, 45, 18, 0.50);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 3000;
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(145deg, rgba(20, 17, 14, 0.90), rgba(8, 8, 7, 0.85));
+            backdrop-filter: blur(28px);
+            border-radius: 16px;
+            max-width: 650px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 106, 0, 0.30);
+            padding: 35px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.80), 0 0 40px rgba(255, 106, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+        
+        .modal-header h3 {
+            color: #F5F5F5;
+            font-size: 1.5em;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #9A9A9A;
+            font-weight: 600;
+            font-size: 0.74em;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            background: rgba(5, 5, 5, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 106, 0, 0.20);
+            border-radius: 10px;
+            color: #F5F5F5;
+            font-size: 1em;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(255, 106, 0, 0.65);
+            background: rgba(5, 5, 5, 0.85);
+            box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.16);
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--border-gold);
+            padding: 25px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .file-upload:hover {
+            border-color: var(--phoenix-orange);
+            background: rgba(255, 106, 0, 0.15);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border-gold);
+        }
+        
+        .cancel-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+            min-height: 44px;
+            padding: 12px 28px;
+            
+            background: rgba(13, 12, 10, 0.70);
+            border: 1px solid rgba(255, 106, 0, 0.35);
+            border-radius: 10px;
+            color: #F5F5F5;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+        }
+
+        .cancel-button:hover {
+            background: rgba(255, 106, 0, 0.12);
+            border-color: rgba(255, 106, 0, 0.50);
+            color: var(--phoenix-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 106, 0, 0.15);
+        }
+
+        .cancel-button:active {
+            transform: translateY(0);
+        }
+
+        .save-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+            min-height: 44px;
+            padding: 12px 28px;
+            
+            background: linear-gradient(135deg, #FF6A00, #E85E00);
+            color: #F5F5F5;
+            border: 1px solid rgba(255, 106, 0, 0.80);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+        }
+
+        .save-button:hover {
+            background: linear-gradient(135deg, #FF7A1A, #FF6A00);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 106, 0, 0.30);
+        }
+
+        .save-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 12px rgba(255, 106, 0, 0.25);
+        }
+        
+        .logo-preview {
+            max-width: 200px;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .settings-section {
+            background: linear-gradient(145deg, rgba(20, 17, 14, 0.82), rgba(8, 8, 7, 0.78));
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 106, 0, 0.20);
+            margin-bottom: 25px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.40);
+        }
+        
+        .settings-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            font-size: 1.3em;
+            letter-spacing: 0.5px;
+        }
+        
+        .feature-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-item input {
+            flex: 1;
+        }
+        
+        .remove-feature-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            
+            min-height: 36px;
+            padding: 8px 16px;
+            
+            background: rgba(127, 29, 29, 0.15);
+            border: 1px solid rgba(220, 70, 50, 0.35);
+            border-radius: 8px;
+            color: #FF8A7A;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            transition: all 0.25s ease;
+        }
+        
+        .remove-feature-button:hover {
+            background: rgba(220, 70, 50, 0.25);
+            border-color: rgba(220, 70, 50, 0.60);
+            color: #FFB3A6;
+            transform: translateY(-1px);
+        }
+
+        .remove-feature-button:active {
+            transform: translateY(0);
+        }
+        
+        .add-feature-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            
+            min-height: 36px;
+            padding: 8px 20px;
+            
+            background: rgba(255, 106, 0, 0.15);
+            border: 1px solid rgba(255, 106, 0, 0.40);
+            border-radius: 8px;
+            color: #F3EEE4;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            margin-top: 10px;
+            transition: all 0.25s ease;
+        }
+        
+        .add-feature-button:hover {
+            background: rgba(255, 106, 0, 0.25);
+            border-color: rgba(255, 106, 0, 0.60);
+            color: var(--phoenix-orange);
+            transform: translateY(-1px);
+        }
+
+        .add-feature-button:active {
+            transform: translateY(0);
+        }
+        
+        .close-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            
+            width: 40px;
+            height: 40px;
+            min-height: 40px;
+            padding: 0;
+            
+            background: rgba(13, 12, 10, 0.60);
+            border: 1px solid rgba(255, 106, 0, 0.25);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .close-button:hover {
+            background: rgba(255, 106, 0, 0.15);
+            border-color: rgba(255, 106, 0, 0.50);
+            color: var(--phoenix-orange);
+            transform: rotate(90deg);
+        }
+
+        .close-button:active {
+            transform: rotate(90deg) scale(0.95);
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                background: #050505;
+                flex-direction: column;
+            }
+            
+            .admin-sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 106, 0, 0.25);
+                padding: 20px;
+                backdrop-filter: blur(20px);
+            }
+            
+            .logo-container {
+                width: auto;
+                height: 60px;
+                padding: 0;
+            }
+            
+            .admin-content {
+                margin-left: 0;
+                padding: 25px 20px;
+            }
+            
+            .admin-header h1 {
+                font-size: 1.5em;
+            }
+
+            .admin-header {
+                flex-direction: column !important;
+                gap: 18px !important;
+            }
+
+            .header-right {
+                width: 100% !important;
+                flex-wrap: wrap !important;
+            }
+
+            .search-container {
+                flex: 1 1 240px !important;
+                min-width: 0 !important;
+                width: auto !important;
+            }
+
+            .notification-dropdown {
+                width: min(380px, calc(100vw - 40px));
+            }
+            
+            .templates-table {
+                font-size: 0.85em;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .stat-card {
+                padding: 20px;
+            }
+            
+            .stat-number {
+                font-size: 2em;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 25px;
+            }
+
+            /* Responsive button sizing for admin */
+            .add-button,
+            .save-button,
+            .cancel-button,
+            .secondary-button {
+                min-height: 40px;
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .action-button {
+                min-height: 32px;
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+
+            .category-btn {
+                min-height: 38px;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .close-button {
+                width: 36px;
+                height: 36px;
+                min-height: 36px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-content {
+                width: 100%;
+                overflow-x: hidden;
+            }
+
+            .header-right .search-container {
+                flex-basis: 100% !important;
+                width: 100% !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Further responsive button sizing */
+            .add-button,
+            .save-button,
+            .cancel-button,
+            .secondary-button {
+                min-height: 38px;
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .action-button {
+                min-height: 30px;
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+
+            .category-btn {
+                min-height: 36px;
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+        }
+        
+        /* Fix modal positioning to be centered in viewport */
+        .modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            margin: 0 !important;
+            transform: none !important;
+        }
+        
+        .modal.active {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        /* =========================================================
+           ADMIN UI REFINEMENTS
+           New rules only — no overriding of the blocks above.
+           ========================================================= */
+
+        /* Native select has no arrow once we restyle it — draw one. */
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23FF6A00' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        /* Placeholders were inheriting body colour — too bright to read as hints. */
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #6B6B6B;
+        }
+
+        /* Keyboard focus for every interactive control. */
+        .admin-nav-item:focus-visible,
+
+        /* Skeleton loading state */
+        .skeleton {
+            background: linear-gradient(90deg,
+                rgba(255, 106, 0, 0.05) 0%,
+                rgba(255, 106, 0, 0.15) 50%,
+                rgba(255, 106, 0, 0.05) 100%);
+            background-size: 200% 100%;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton-pulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-nav-item {
+            height: 40px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            border-radius: 6px;
+        }
+
+        .skeleton-nav-item .skeleton-icon {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .skeleton-nav-item .skeleton-text {
+            height: 14px;
+            flex: 1;
+            max-width: 140px;
+        }
+        .add-button:focus-visible,
+        .save-button:focus-visible,
+        .edit-btn:focus-visible,
+        .delete-btn:focus-visible,
+        .logout-button:focus-visible {
+            outline: 2px solid var(--phoenix-orange);
+            outline-offset: 2px;
+        }
+
+        /* Sidebar scrollbar — the global one is sized for the page, not a 280px rail. */
+        .admin-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 106, 0, 0.25);
+            border-radius: 3px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 106, 0, 0.5);
+        }
+
+        /* Empty states — tables currently render a bare blank area. */
+        .admin-empty {
+            text-align: center;
+            padding: 60px 30px;
+            color: #7A7A7A;
+            background: linear-gradient(145deg, rgba(20, 17, 14, 0.5), rgba(8, 8, 7, 0.45));
+            border: 1px dashed rgba(255, 106, 0, 0.22);
+            border-radius: 14px;
+        }
+
+        .admin-empty-icon {
+            font-size: 2.2em;
+            opacity: 0.45;
+            margin-bottom: 12px;
+        }
+
+        .admin-empty h4 {
+            color: #C4C4C4;
+            font-size: 1.05em;
+            margin-bottom: 6px;
+        }
+
+        .admin-empty p {
+            font-size: 0.9em;
+            margin: 0;
+        }
+
+        /* Modal backdrop — content sat on an unblurred page behind it. */
+        .modal {
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            background: rgba(0, 0, 0, 0.65);
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 106, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        /* Table row action buttons — consistent sizing and hover intent. */
+        .templates-table .edit-btn,
+        .templates-table .delete-btn {
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .templates-table .edit-btn:hover,
+        .templates-table .delete-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Native file inputs render an unstyled OS button — restyle it. */
+        .form-group input[type="file"] {
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+
+        .form-group input[type="file"]::file-selector-button {
+            background: rgba(255, 106, 0, 0.12);
+            color: #FF9A4A;
+            border: 1px solid rgba(255, 106, 0, 0.35);
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin-right: 14px;
+            font-weight: 600;
+            font-size: 0.88em;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .form-group input[type="file"]::file-selector-button:hover {
+            background: rgba(255, 106, 0, 0.22);
+            border-color: rgba(255, 106, 0, 0.6);
+        }
+
+        /* Delete was near-illegible against the row — destructive actions
+           need to be readable, not hidden. */
+        .delete-btn {
+            color: #FF8A7A;
+            border-color: rgba(220, 70, 50, 0.45);
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 70, 50, 0.18);
+            border-color: rgba(220, 70, 50, 0.8);
+            color: #FFB3A6;
+        }
+
+        /* Stat cards read as clickable but aren't — make the affordance honest. */
+        .stat-card {
+            cursor: default;
+        }
+
+        /* Phoenix Pet module */
+        .pet-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .pet-toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .pet-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .pet-toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 106, 0, 0.25);
+            border-radius: 100px;
+            transition: background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .pet-toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #D4D4D4;
+            border-radius: 50%;
+            transition: transform 0.25s ease, background 0.25s ease;
+        }
+
+        .pet-toggle-switch input:checked + .pet-toggle-slider {
+            background: rgba(255, 106, 0, 0.35);
+            border-color: rgba(255, 106, 0, 0.7);
+        }
+
+        .pet-toggle-switch input:checked + .pet-toggle-slider::before {
+            transform: translate(20px, -50%);
+            background: #FF6A00;
+        }
+
+        /* PET Feature Toggle */
+        .pet-feature-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .pet-feature-toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .pet-feature-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .pet-feature-toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 106, 0, 0.25);
+            border-radius: 100px;
+            transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .pet-feature-toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #D4D4D4;
+            border-radius: 50%;
+            transition: transform 0.25s ease, background 0.25s ease;
+        }
+
+        .pet-feature-toggle-switch input:checked + .pet-feature-toggle-slider {
+            background: rgba(255, 106, 0, 0.35);
+            border-color: rgba(255, 106, 0, 0.7);
+            box-shadow: 0 0 16px rgba(255, 106, 0, 0.25);
+        }
+
+        .pet-feature-toggle-switch input:checked + .pet-feature-toggle-slider::before {
+            transform: translate(20px, -50%);
+            background: #FF6A00;
+        }
+
+        .pet-feature-toggle-switch input:focus-visible + .pet-feature-toggle-slider {
+            outline: 2px solid var(--phoenix-orange);
+            outline-offset: 2px;
+        }
+
+        .pet-preview-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 40%, rgba(255, 106, 0, 0.10), transparent 70%), rgba(5, 5, 5, 0.5);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 30px;
+        }
+
+        .pet-preview-img {
+            width: 90px;
+            height: auto;
+            filter: drop-shadow(0 6px 16px rgba(255, 90, 0, 0.35));
+        }
+
+        #pet-tips-textarea {
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+            <div class="admin-logo">
+                <div class="logo-container">
+                    <img id="admin-logo" src="/uploads/logo-cutout.png" alt="PhoenixAI Studio">
+                </div>
+            </div>
+            <nav class="admin-nav" id="admin-nav">
+                <!-- Navigation items loaded dynamically based on modules -->
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="admin-content">
+            <div class="admin-header">
+                <div class="header-left">
+                    <h1 id="page-title">Admin Dashboard</h1>
+                    <p id="page-description" class="page-description">Manage your PhoenixAI Studio content</p>
+                </div>
+                <div class="header-right">
+                    <div class="search-container">
+                        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="admin-search" placeholder="Search modules, projects, agents... (Ctrl+K)" class="search-input">
+                        <button class="search-clear" onclick="clearSearch()" style="display: none;">&times;</button>
+                    </div>
+                    <div class="notification-container">
+                        <button class="notification-button" onclick="toggleNotifications()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+                        </button>
+                        <div class="notification-dropdown" id="notification-dropdown">
+                            <div class="notification-dropdown-header">
+                                <h3>Notifications</h3>
+                                <button class="mark-all-read" onclick="markAllNotificationsRead()">Mark all read</button>
+                            </div>
+                            <div class="notification-list" id="notification-list">
+                                <!-- Notifications loaded dynamically -->
+                            </div>
+                            <div class="notification-dropdown-footer">
+                                <a href="#" onclick="navigateToNotifications()">View all notifications</a>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="logout-button" onclick="logout()">Logout</button>
+                </div>
+            </div>
+            
+            <!-- Search Results Dropdown -->
+            <div id="search-results" class="search-results" style="display: none;">
+                <div class="search-results-content">
+                    <div class="search-results-header">Search Results</div>
+                    <div id="search-results-list" class="search-results-list">
+                        <!-- Results loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin-error" class="admin-error" hidden role="alert"></div>
+            
+            <!-- Overview Section -->
+            <div id="overview" class="admin-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-templates">0</div>
+                        <div class="stat-label">Total Templates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="published-templates">0</div>
+                        <div class="stat-label">Published Templates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-demo-websites">0</div>
+                        <div class="stat-label">Total Demo Websites</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-ai-agents">0</div>
+                        <div class="stat-label">Total AI Agents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-services">0</div>
+                        <div class="stat-label">Total Services</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-packages">0</div>
+                        <div class="stat-label">Total Packages</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-leads">0</div>
+                        <div class="stat-label">Total Leads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-inquiries">0</div>
+                        <div class="stat-label">Contact Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="unread-notifications">0</div>
+                        <div class="stat-label">Unread Notifications</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Templates Section -->
+            <div id="templates" class="admin-section">
+                <div class="action-bar">
+                    <h2>Template Management</h2>
+                    <button class="add-button" onclick="openTemplateModal()">+ Add Template</button>
+                </div>
+                <table class="templates-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Style</th>
+                            <th>Featured</th>
+                            <th>Published</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="templates-table-body">
+                        <!-- Templates loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Demo Websites Section -->
+            <div id="demo-websites" class="admin-section">
+                <div class="action-bar">
+                    <h2>Demo Website Management</h2>
+                    <button class="add-button" onclick="openDemoWebsiteModal()">+ Add Demo Website</button>
+                </div>
+                <table class="templates-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Featured</th>
+                            <th>Published</th>
+                            <th>Sort Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="demo-websites-table-body">
+                        <!-- Demo websites loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- AI Agents Section -->
+            <div id="ai-agents" class="admin-section">
+                <div class="action-bar">
+                    <h2>AI Agent Management</h2>
+                    <button class="add-button" onclick="openAIAgentModal()">+ Add AI Agent</button>
+                </div>
+                <table class="templates-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Featured</th>
+                            <th>Published</th>
+                            <th>Sort Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ai-agents-table-body">
+                        <!-- AI agents loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Packages Section -->
+            <div id="packages" class="admin-section">
+                <div class="action-bar">
+                    <h2>Package Management</h2>
+                    <button class="add-button" onclick="openPackageModal()">+ Add Package</button>
+                </div>
+                <div class="category-filters" id="package-category-filters">
+                    <button class="category-btn active" data-category="all">All Categories</button>
+                    <button class="category-btn" data-category="career-builder">Career Builder</button>
+                    <button class="category-btn" data-category="website-module">Website Module</button>
+                    <button class="category-btn" data-category="ai-agent-module">AI Agent Module</button>
+                </div>
+                <table class="templates-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Billing Type</th>
+                            <th>Featured</th>
+                            <th>Published</th>
+                            <th>Sort Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="packages-table-body">
+                        <!-- Packages loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Inquiries Section -->
+            <div id="inquiries-overview" class="admin-section">
+                <div class="action-bar">
+                    <h2>Inquiry Management</h2>
+                </div>
+                <table class="templates-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Service</th>
+                            <th>Budget</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inquiries-table-body">
+                        <!-- Inquiries loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Services Section -->
+            <div id="services" class="admin-section">
+                <div class="action-bar">
+                    <h2>Service Management</h2>
+                    <button class="add-button" onclick="openServiceModal()">+ Add Service</button>
+                </div>
+                <div class="category-filters" id="service-category-filters">
+                    <!-- Category buttons populated dynamically from settings.serviceCategories -->
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="service-search" placeholder="Search services..." oninput="filterServices()">
+                </div>
+                <table class="templates-table">
+                    <thead>
+                        <tr>
+                            <th>Service Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Featured</th>
+                            <th>Display Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="services-table-body">
+                        <!-- Services loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Leads Section -->
+            <div id="leads" class="admin-section">
+                <div class="action-bar">
+                    <h2>Leads</h2>
+                    <button class="add-button" onclick="openLeadModal()">+ Add Lead</button>
+                </div>
+                <div class="search-filter-bar">
+                    <input type="text" id="leads-search" placeholder="Search by name, email, phone, company..." class="search-input">
+                    <select id="leads-status-filter" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="New">New</option>
+                        <option value="Contacted">Contacted</option>
+                        <option value="Qualified">Qualified</option>
+                        <option value="Converted">Converted</option>
+                        <option value="Lost">Lost</option>
+                    </select>
+                    <select id="leads-priority-filter" class="filter-select">
+                        <option value="">All Priorities</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Company</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leads-table-body">
+                        <!-- Leads loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Contact Requests Section -->
+            <div id="inquiries" class="admin-section">
+                <div class="action-bar">
+                    <h2>Contact Requests</h2>
+                </div>
+                <div class="search-filter-bar">
+                    <input type="text" id="inquiries-search" placeholder="Search by name, email, subject..." class="search-input">
+                    <select id="inquiries-status-filter" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="New">New</option>
+                        <option value="Read">Read</option>
+                        <option value="Replied">Replied</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Subject</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inquiries-table-body">
+                        <!-- Inquiries loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Notifications Section -->
+            <div id="notifications" class="admin-section">
+                <div class="action-bar">
+                    <h2>Notifications</h2>
+                    <button class="secondary-button" onclick="markAllNotificationsRead()">Mark All Read</button>
+                </div>
+                <div class="search-filter-bar">
+                    <select id="notifications-type-filter" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="lead">Leads</option>
+                        <option value="contact">Contact Requests</option>
+                        <option value="system">System</option>
+                    </select>
+                    <select id="notifications-read-filter" class="filter-select">
+                        <option value="">All</option>
+                        <option value="unread">Unread</option>
+                        <option value="read">Read</option>
+                    </select>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Message</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notifications-table-body">
+                        <!-- Notifications loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phoenix Pet Section -->
+            <div id="pet" class="admin-section">
+                <div class="settings-section">
+                    <h3>Mascot Visibility</h3>
+                    <p class="settings-description">Show or hide the animated phoenix on the public website. Visitors who dismiss it themselves won't see it again on their device, regardless of this setting.</p>
+                    <label class="pet-toggle-row">
+                        <span class="pet-toggle-switch">
+                            <input type="checkbox" id="pet-enabled-toggle" checked>
+                            <span class="pet-toggle-slider"></span>
+                        </span>
+                        <span id="pet-toggle-label">Mascot is enabled on the website</span>
+                    </label>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Preview</h3>
+                    <p class="settings-description">This is the artwork currently used for the mascot.</p>
+                    <div class="pet-preview-box">
+                        <img src="/pet-bird.png" alt="Phoenix pet preview" class="pet-preview-img">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Tips &amp; Messages</h3>
+                    <p class="settings-description">What the mascot says in its speech bubble when clicked. One message per line — it cycles through them in order, and picks a random starting point per visitor.</p>
+                    <div class="form-group">
+                        <label>Messages</label>
+                        <textarea id="pet-tips-textarea" rows="8" placeholder="One tip per line..."></textarea>
+                    </div>
+                    <button class="save-button" onclick="savePetSettings()">Save Pet Settings</button>
+                    <p id="pet-settings-message" class="settings-description" style="margin-top:10px;"></p>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="admin-section">
+                <div class="settings-section">
+                    <h3>Logo Management</h3>
+                    <div class="form-group">
+                        <label>Current Logo</label>
+                        <img id="current-logo" class="logo-preview" src="/uploads/logo-cutout.png" alt="Current Logo">
+                    </div>
+                    <div class="form-group">
+                        <label>Upload New Logo</label>
+                        <input type="file" id="logo-upload" accept="image/*">
+                    </div>
+                    <button class="save-button" onclick="uploadLogo()">Update Logo</button>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Admin Password</h3>
+                    <p class="settings-description">Change the password used to log into this admin panel.</p>
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="current-password" autocomplete="current-password">
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="new-password" autocomplete="new-password" minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="confirm-password" autocomplete="new-password" minlength="8">
+                    </div>
+                    <button class="save-button" onclick="changeAdminPassword()">Update Password</button>
+                    <p id="password-change-message" class="settings-description" style="margin-top:10px;"></p>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Module Management</h3>
+                    <p class="settings-description">Manage application modules, visibility, and display order.</p>
+                    <div id="modules-list" class="modules-list">
+                        <!-- Modules loaded dynamically -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Package Categories</h3>
+                    <p class="settings-description">Manage package categories for organizing services.</p>
+                    <div id="package-categories-list" class="modules-list">
+                        <!-- Package categories loaded dynamically -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Service Categories</h3>
+                    <p class="settings-description">Manage service categories for organizing business services.</p>
+                    <div id="service-categories-list" class="modules-list">
+                        <!-- Service categories loaded dynamically -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>PET Feature</h3>
+                    <p class="settings-description">Enable or disable the PET feature across PhoenixAI Studio.</p>
+                    <div class="form-group">
+                        <label class="pet-feature-toggle-row">
+                            <span class="pet-feature-toggle-switch">
+                                <input type="checkbox" id="pet-feature-toggle">
+                                <span class="pet-feature-toggle-slider"></span>
+                            </span>
+                            <span id="pet-feature-toggle-label">PET is disabled</span>
+                        </label>
+                    </div>
+                    <button class="save-button" onclick="savePetFeatureSettings()">Save PET Feature Settings</button>
+                    <p id="pet-feature-settings-message" class="settings-description" style="margin-top:10px;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Template Modal -->
+    <div id="template-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Template</h3>
+                <button class="close-button" onclick="closeTemplateModal()">&times;</button>
+            </div>
+            <form id="template-form">
+                <input type="hidden" id="template-id">
+                <div class="form-group">
+                    <label>Template Name</label>
+                    <input type="text" id="template-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="template-category" required>
+                        <option value="resume">Resume Builder</option>
+                        <option value="portfolio">Portfolio Builder</option>
+                        <option value="cover-letter">Cover Letter Builder</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="template-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Style/Tag</label>
+                    <input type="text" id="template-style" required>
+                </div>
+                <div class="form-group">
+                    <label>Thumbnail</label>
+                    <input type="file" id="template-thumbnail" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label>PDF (Optional)</label>
+                    <input type="file" id="template-pdf" accept=".pdf">
+                </div>
+                <div class="form-group">
+                    <label>Preview Images (Optional, Multiple)</label>
+                    <input type="file" id="template-preview-images" accept="image/*" multiple>
+                </div>
+                <div class="form-group">
+                    <label>Portfolio URL (Optional)</label>
+                    <input type="url" id="template-portfolio-url" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" id="template-sort-order" value="0" min="0">
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="template-featured">
+                        <label for="template-featured">Featured</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="template-published" checked>
+                        <label for="template-published">Published</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closeTemplateModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save Template</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Package Modal -->
+    <div id="package-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="package-modal-title">Add Package</h3>
+                <button class="close-button" onclick="closePackageModal()">&times;</button>
+            </div>
+            <form id="package-form">
+                <input type="hidden" id="package-id">
+                <div class="form-group">
+                    <label>Package Name</label>
+                    <input type="text" id="package-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input type="text" id="package-slug" required>
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="text" id="package-price" required>
+                </div>
+                <div class="form-group">
+                    <label>Currency</label>
+                    <select id="package-currency">
+                        <option value="INR">INR</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Billing Type</label>
+                    <select id="package-billing-type">
+                        <option value="one-time">One-time</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="package-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Features</label>
+                    <div id="package-features-container">
+                        <div class="feature-item">
+                            <input type="text" class="feature-input" placeholder="Enter feature">
+                            <button type="button" class="remove-feature-button" onclick="removeFeature(this)">Remove</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-feature-button" onclick="addFeature()">+ Add Feature</button>
+                </div>
+                <div class="form-group">
+                    <label>CTA Text</label>
+                    <input type="text" id="package-cta-text" value="Get Started">
+                </div>
+                <div class="form-group">
+                    <label>CTA Link</label>
+                    <input type="text" id="package-cta-link" value="#contact">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="package-category" required>
+                        <option value="career-builder">Career Builder</option>
+                        <option value="website-module">Website Module</option>
+                        <option value="ai-agent-module">AI Agent Module</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" id="package-sort-order" value="0" min="0">
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="package-featured">
+                        <label for="package-featured">Featured</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="package-published" checked>
+                        <label for="package-published">Published</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closePackageModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save Package</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Demo Website Modal -->
+    <div id="demo-website-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="demo-modal-title">Add Demo Website</h3>
+                <button class="close-button" onclick="closeDemoWebsiteModal()">&times;</button>
+            </div>
+            <form id="demo-website-form">
+                <input type="hidden" id="demo-id">
+                <div class="form-group">
+                    <label>Website Name</label>
+                    <input type="text" id="demo-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input type="text" id="demo-slug" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="demo-category" required>
+                        <option value="business">Business Website</option>
+                        <option value="portfolio">Portfolio Website</option>
+                        <option value="ecommerce">E-commerce Website</option>
+                        <option value="restaurant">Restaurant Website</option>
+                        <option value="realestate">Real Estate Website</option>
+                        <option value="agency">Agency Website</option>
+                        <option value="landing">Landing Page</option>
+                        <option value="education">Education Website</option>
+                        <option value="healthcare">Healthcare Website</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="demo-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Thumbnail</label>
+                    <input type="file" id="demo-thumbnail" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label>Demo URL</label>
+                    <input type="url" id="demo-url" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <input type="text" id="demo-status" placeholder="New, Featured, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" id="demo-sort-order" value="0" min="0">
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="demo-featured">
+                        <label for="demo-featured">Featured</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="demo-published" checked>
+                        <label for="demo-published">Published</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closeDemoWebsiteModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save Demo Website</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- AI Agent Modal -->
+    <div id="ai-agent-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="ai-agent-modal-title">Add AI Agent</h3>
+                <button class="close-button" onclick="closeAIAgentModal()">&times;</button>
+            </div>
+            <form id="ai-agent-form">
+                <input type="hidden" id="ai-agent-id">
+                <div class="form-group">
+                    <label>Agent Name</label>
+                    <input type="text" id="ai-agent-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input type="text" id="ai-agent-slug" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="ai-agent-category" required>
+                        <option value="customer-support">Customer Support</option>
+                        <option value="sales">Sales</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="lead-generation">Lead Generation</option>
+                        <option value="appointment-booking">Appointment Booking</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="ecommerce">E-commerce</option>
+                        <option value="realestate">Real Estate</option>
+                        <option value="education">Education</option>
+                        <option value="hr">HR</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Short Description</label>
+                    <textarea id="ai-agent-short-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Full Description</label>
+                    <textarea id="ai-agent-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Thumbnail</label>
+                    <input type="file" id="ai-agent-thumbnail" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label>Demo URL</label>
+                    <input type="url" id="ai-agent-demo-url" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <input type="text" id="ai-agent-status" placeholder="New, Featured, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Features (comma-separated)</label>
+                    <textarea id="ai-agent-features" placeholder="Feature 1, Feature 2, Feature 3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Use Cases (comma-separated)</label>
+                    <textarea id="ai-agent-use-cases" placeholder="Use Case 1, Use Case 2, Use Case 3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" id="ai-agent-sort-order" value="0" min="0">
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="ai-agent-featured">
+                        <label for="ai-agent-featured">Featured</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="ai-agent-published" checked>
+                        <label for="ai-agent-published">Published</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closeAIAgentModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save AI Agent</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Module Edit Modal -->
+    <div id="module-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="module-modal-title">Edit Module</h3>
+                <button class="close-button" onclick="closeModuleModal()">&times;</button>
+            </div>
+            <form id="module-form">
+                <input type="hidden" id="module-id">
+                <div class="form-group">
+                    <label>Module Name</label>
+                    <input type="text" id="module-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="module-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Navigation Label</label>
+                    <input type="text" id="module-navigation-label" required>
+                </div>
+                <div class="form-group">
+                    <label>Display Order</label>
+                    <input type="number" id="module-display-order" value="1" min="1" required>
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="module-enabled" checked>
+                        <label for="module-enabled">Enabled</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="module-show-sidebar" checked>
+                        <label for="module-show-sidebar">Show in Sidebar</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closeModuleModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Package Category Edit Modal -->
+    <div id="package-category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="package-category-modal-title">Edit Package Category</h3>
+                <button class="close-button" onclick="closePackageCategoryModal()">&times;</button>
+            </div>
+            <form id="package-category-form">
+                <input type="hidden" id="package-category-id">
+                <div class="form-group">
+                    <label>Category Name</label>
+                    <input type="text" id="package-category-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="package-category-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Display Order</label>
+                    <input type="number" id="package-category-display-order" value="1" min="1" required>
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="package-category-enabled" checked>
+                        <label for="package-category-enabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closePackageCategoryModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Service Modal -->
+    <div id="service-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="service-modal-title">Add Service</h3>
+                <button class="close-button" onclick="closeServiceModal()">&times;</button>
+            </div>
+            <form id="service-form">
+                <input type="hidden" id="service-id">
+                <div class="form-group">
+                    <label>Service Name</label>
+                    <input type="text" id="service-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input type="text" id="service-slug" required>
+                </div>
+                <div class="form-group">
+                    <label>Short Description</label>
+                    <input type="text" id="service-short-description" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Description</label>
+                    <textarea id="service-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="service-category" required>
+                        <!-- Options populated dynamically from settings.serviceCategories -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Thumbnail URL</label>
+                    <input type="text" id="service-thumbnail">
+                </div>
+                <div class="form-group">
+                    <label>CTA Text</label>
+                    <input type="text" id="service-cta-text" value="Learn More">
+                </div>
+                <div class="form-group">
+                    <label>CTA Link</label>
+                    <input type="text" id="service-cta-link" value="#contact">
+                </div>
+                <div class="form-group">
+                    <label>Display Order</label>
+                    <input type="number" id="service-display-order" value="1" min="1" required>
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="service-active" checked>
+                        <label for="service-active">Active</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="service-featured">
+                        <label for="service-featured">Featured</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closeServiceModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save Service</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lead Modal -->
+    <div id="lead-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="lead-modal-title">Add Lead</h3>
+                <button class="close-button" onclick="closeLeadModal()">&times;</button>
+            </div>
+            <form id="lead-form">
+                <input type="hidden" id="lead-id">
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="lead-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="lead-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" id="lead-phone">
+                </div>
+                <div class="form-group">
+                    <label>Company</label>
+                    <input type="text" id="lead-company">
+                </div>
+                <div class="form-group">
+                    <label>Interested Service</label>
+                    <input type="text" id="lead-service">
+                </div>
+                <div class="form-group">
+                    <label>Source</label>
+                    <select id="lead-source">
+                        <option value="Website">Website</option>
+                        <option value="Referral">Referral</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Email">Email</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="lead-status">
+                        <option value="New">New</option>
+                        <option value="Contacted">Contacted</option>
+                        <option value="Qualified">Qualified</option>
+                        <option value="Converted">Converted</option>
+                        <option value="Lost">Lost</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="lead-priority">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="lead-notes" rows="4"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel-button" onclick="closeLeadModal()">Cancel</button>
+                    <button type="submit" class="save-button">Save Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inquiry Detail Modal -->
+    <div id="inquiry-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Contact Request Details</h3>
+                <button class="close-button" onclick="closeInquiryModal()">&times;</button>
+            </div>
+            <div id="inquiry-detail-content">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="cancel-button" onclick="closeInquiryModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin-script.js"></script>
+</body>
+</html>
