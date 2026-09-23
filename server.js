@@ -3060,6 +3060,10 @@ app.put('/api/admin/demo-websites/:id', requireAdmin, upload.fields([
     thumbnailBlob = await uploadToBlob(thumbnailFile, 'thumbnails');
   }
 
+  if (thumbnailFile) {
+    demo.thumbnail = fileUrl(thumbnailBlob || thumbnailFile);
+  }
+
   data.demoWebsites[demoIndex] = demo;
   writeData(data);
 
@@ -3334,4 +3338,4 @@ if (require.main === module) {
   }
 
   startServer();
-}
+}
