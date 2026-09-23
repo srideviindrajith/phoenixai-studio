@@ -905,6 +905,10 @@ function closeDemoWebsiteModal() {
     document.getElementById('demo-website-modal').classList.remove('active');
     document.body.style.overflow = 'auto';
     editingDemoWebsiteId = null;
+    // Without this, a thumbnail picked for one demo website stays selected in the
+    // file input and gets silently resubmitted the next time this modal is opened
+    // to edit a DIFFERENT demo website, overwriting its thumbnail.
+    document.getElementById('demo-website-form').reset();
 }
 
 function editDemoWebsite(id) {
@@ -1037,6 +1041,9 @@ function closeAIAgentModal() {
     document.getElementById('ai-agent-modal').classList.remove('active');
     document.body.style.overflow = 'auto';
     editingAIAgentId = null;
+    // Same reason as closeDemoWebsiteModal(): clear the file input so a thumbnail
+    // chosen for one agent can never be resubmitted for a different agent later.
+    document.getElementById('ai-agent-form').reset();
 }
 
 function editAIAgent(id) {
