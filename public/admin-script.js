@@ -186,9 +186,7 @@ async function loadAdminData() {
             petFeatureSettings = petFeatureResult.status === 'fulfilled' ? petFeatureResult.value : { enabled: false };
 
             useBootstrap = true;
-            console.log('[ADMIN] Loaded data from bootstrap endpoint');
         } catch (bootstrapError) {
-            console.log('[ADMIN] Bootstrap endpoint not available, falling back to individual requests');
             // Fall back to individual requests
         }
 
@@ -702,7 +700,12 @@ function setupDemoWebsiteForm() {
     const form = document.getElementById('demo-website-form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+
         const formData = new FormData();
         formData.append('name', document.getElementById('demo-name').value);
         formData.append('slug', document.getElementById('demo-slug').value);
@@ -713,35 +716,38 @@ function setupDemoWebsiteForm() {
         formData.append('sortOrder', document.getElementById('demo-sort-order').value);
         formData.append('featured', document.getElementById('demo-featured').checked);
         formData.append('published', document.getElementById('demo-published').checked);
-        
+
         const thumbnailInput = document.getElementById('demo-thumbnail');
         if (thumbnailInput.files.length > 0) {
             formData.append('thumbnail', thumbnailInput.files[0]);
         }
-        
+
         try {
-            const url = editingDemoWebsiteId 
+            const url = editingDemoWebsiteId
                 ? `/api/admin/demo-websites/${editingDemoWebsiteId}`
                 : '/api/admin/demo-websites';
-            
+
             const method = editingDemoWebsiteId ? 'PUT' : 'POST';
-            
+
             const response = await fetch(url, {
                 method: method,
                 body: formData
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 closeDemoWebsiteModal();
                 loadAdminData();
             } else {
-                alert('Error saving demo website. Please try again.');
+                alert('Error saving demo website: ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error saving demo website:', error);
             alert('Error saving demo website. Please try again.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -759,7 +765,7 @@ async function deleteDemoWebsite(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error deleting demo website. Please try again.');
+            alert('Error deleting demo website: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error deleting demo website:', error);
@@ -785,7 +791,7 @@ async function toggleDemoPublish(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error updating demo website. Please try again.');
+            alert('Error updating demo website: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error updating demo website:', error);
@@ -841,6 +847,11 @@ function setupAIAgentForm() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+
         const formData = new FormData();
         formData.append('name', document.getElementById('ai-agent-name').value);
         formData.append('slug', document.getElementById('ai-agent-slug').value);
@@ -860,10 +871,10 @@ function setupAIAgentForm() {
             formData.append('thumbnail', thumbnailInput.files[0]);
         }
 
-        const url = editingAIAgentId 
+        const url = editingAIAgentId
             ? `/api/admin/ai-agents/${editingAIAgentId}`
             : '/api/admin/ai-agents';
-        
+
         const method = editingAIAgentId ? 'PUT' : 'POST';
 
         try {
@@ -871,18 +882,21 @@ function setupAIAgentForm() {
                 method: method,
                 body: formData
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 closeAIAgentModal();
                 loadAdminData();
             } else {
-                alert('Error saving AI agent. Please try again.');
+                alert('Error saving AI agent: ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error saving AI agent:', error);
             alert('Error saving AI agent. Please try again.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -900,7 +914,7 @@ async function deleteAIAgent(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error deleting AI agent. Please try again.');
+            alert('Error deleting AI agent: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error deleting AI agent:', error);
@@ -926,7 +940,7 @@ async function toggleAIAgentPublish(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error updating AI agent. Please try again.');
+            alert('Error updating AI agent: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error updating AI agent:', error);
@@ -1185,12 +1199,18 @@ function closeModuleModal() {
     document.getElementById('module-modal').classList.remove('active');
     document.body.style.overflow = 'auto';
     editingModuleId = null;
+    document.getElementById('module-form').reset();
 }
 
 function setupModuleForm() {
     const form = document.getElementById('module-form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
 
         // Store original values for revert on error
         const originalModule = modules.find(m => m.id === editingModuleId);
@@ -1237,6 +1257,9 @@ function setupModuleForm() {
                 errorMessage = 'Server error. Please try again.';
             }
             showAdminError(errorMessage);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -1388,6 +1411,7 @@ function closePackageCategoryModal() {
     document.getElementById('package-category-modal').classList.remove('active');
     document.body.style.overflow = 'auto';
     editingPackageCategoryId = null;
+    document.getElementById('package-category-form').reset();
 }
 
 // Setup package category form
@@ -1395,6 +1419,11 @@ function setupPackageCategoryForm() {
     const form = document.getElementById('package-category-form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
 
         // Store original values for revert on error
         const originalCategory = packageCategories.find(c => c.id === editingPackageCategoryId);
@@ -1439,6 +1468,9 @@ function setupPackageCategoryForm() {
                 errorMessage = 'Server error. Please try again.';
             }
             showAdminError(errorMessage);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -1700,6 +1732,7 @@ function closeServiceModal() {
     document.getElementById('service-modal').classList.remove('active');
     document.body.style.overflow = 'auto';
     editingServiceId = null;
+    document.getElementById('service-form').reset();
 }
 
 // Edit service
@@ -1728,12 +1761,12 @@ async function toggleServiceActive(serviceId) {
         if (data.success) {
             renderServicesTable();
         } else {
-            alert('Error updating service status');
+            alert('Error updating service status: ' + (data.error || 'Unknown error'));
             service.active = !service.active; // Revert
         }
     } catch (error) {
         console.error('Error updating service:', error);
-        alert('Error updating service status');
+        alert('Error updating service status: ' + (error.message || 'Unknown error'));
         service.active = !service.active; // Revert
     }
 }
@@ -1759,12 +1792,12 @@ async function toggleServiceFeatured(serviceId) {
         if (data.success) {
             renderServicesTable();
         } else {
-            alert('Error updating service featured status');
+            alert('Error updating service featured status: ' + (data.error || 'Unknown error'));
             service.featured = !service.featured; // Revert
         }
     } catch (error) {
         console.error('Error updating service:', error);
-        alert('Error updating service featured status');
+        alert('Error updating service featured status: ' + (error.message || 'Unknown error'));
         service.featured = !service.featured; // Revert
     }
 }
@@ -1789,7 +1822,7 @@ async function deleteService(serviceId) {
         }
     } catch (error) {
         console.error('Error deleting service:', error);
-        alert('Error deleting service');
+        alert('Error deleting service: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -1798,6 +1831,11 @@ function setupServiceForm() {
     const form = document.getElementById('service-form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
 
         const serviceData = {
             name: document.getElementById('service-name').value,
@@ -1843,7 +1881,10 @@ function setupServiceForm() {
             }
         } catch (error) {
             console.error('Error saving service:', error);
-            alert('Error saving service');
+            alert('Error saving service: ' + (error.message || 'Unknown error'));
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -1976,7 +2017,12 @@ async function moveServiceCategoryDown(id) {
 function setupTemplateForm() {
     document.getElementById('template-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+
         const formData = new FormData();
         formData.append('name', document.getElementById('template-name').value);
         formData.append('category', document.getElementById('template-category').value);
@@ -1986,12 +2032,12 @@ function setupTemplateForm() {
         formData.append('sortOrder', document.getElementById('template-sort-order').value);
         formData.append('featured', document.getElementById('template-featured').checked);
         formData.append('published', document.getElementById('template-published').checked);
-        
+
         // Add files if present
         const thumbnail = document.getElementById('template-thumbnail').files[0];
         const pdf = document.getElementById('template-pdf').files[0];
         const previewImages = document.getElementById('template-preview-images').files;
-        
+
         if (thumbnail) formData.append('thumbnail', thumbnail);
         if (pdf) formData.append('pdf', pdf);
         if (previewImages.length > 0) {
@@ -1999,7 +2045,7 @@ function setupTemplateForm() {
                 formData.append('previewImages', previewImages[i]);
             }
         }
-        
+
         try {
             let response;
             if (editingTemplateId) {
@@ -2013,9 +2059,9 @@ function setupTemplateForm() {
                     body: formData
                 });
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 closeTemplateModal();
                 loadAdminData();
@@ -2024,7 +2070,10 @@ function setupTemplateForm() {
             }
         } catch (error) {
             console.error('Error saving template:', error);
-            alert('Error saving template. Please try again.');
+            alert('Error saving template: ' + (error.message || 'Unknown error'));
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -2097,7 +2146,7 @@ async function deleteTemplate(templateId) {
         }
     } catch (error) {
         console.error('Error deleting template:', error);
-        alert('Error deleting template. Please try again.');
+        alert('Error deleting template: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2131,7 +2180,7 @@ async function togglePublish(templateId) {
         }
     } catch (error) {
         console.error('Error updating template:', error);
-        alert('Error updating template. Please try again.');
+        alert('Error updating template: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2163,7 +2212,7 @@ async function uploadLogo() {
         }
     } catch (error) {
         console.error('Error uploading logo:', error);
-        alert('Error uploading logo. Please try again.');
+        alert('Error uploading logo: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2356,13 +2405,18 @@ document.getElementById('template-modal').addEventListener('click', function(e) 
 function setupPackageForm() {
     document.getElementById('package-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+
         // Collect features
         const featureInputs = document.querySelectorAll('.feature-input');
         const features = Array.from(featureInputs)
             .map(input => input.value.trim())
             .filter(value => value !== '');
-        
+
         const packageData = {
             name: document.getElementById('package-name').value,
             slug: document.getElementById('package-slug').value,
@@ -2378,7 +2432,7 @@ function setupPackageForm() {
             featured: document.getElementById('package-featured').checked,
             published: document.getElementById('package-published').checked
         };
-        
+
         try {
             let response;
             if (editingPackageId) {
@@ -2398,9 +2452,9 @@ function setupPackageForm() {
                     body: JSON.stringify(packageData)
                 });
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 closePackageModal();
                 loadAdminData();
@@ -2409,7 +2463,10 @@ function setupPackageForm() {
             }
         } catch (error) {
             console.error('Error saving package:', error);
-            alert('Error saving package. Please try again.');
+            alert('Error saving package: ' + (error.message || 'Unknown error'));
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -2474,6 +2531,8 @@ function closePackageModal() {
     document.body.style.overflow = 'auto';
     editingPackageId = null;
     document.getElementById('package-form').reset();
+    // Clear dynamic features list to prevent carryover to next item
+    document.getElementById('package-features-container').innerHTML = '';
 }
 
 // Edit package
@@ -2501,7 +2560,7 @@ async function deletePackage(packageId) {
         }
     } catch (error) {
         console.error('Error deleting package:', error);
-        alert('Error deleting package. Please try again.');
+        alert('Error deleting package: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2543,7 +2602,7 @@ async function togglePackageFeatured(packageId) {
         }
     } catch (error) {
         console.error('Error updating package:', error);
-        alert('Error updating package. Please try again.');
+        alert('Error updating package: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2585,7 +2644,7 @@ async function togglePackagePublish(packageId) {
         }
     } catch (error) {
         console.error('Error updating package:', error);
-        alert('Error updating package. Please try again.');
+        alert('Error updating package: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2688,6 +2747,7 @@ function closeLeadModal() {
     document.getElementById('lead-modal').classList.remove('active');
     document.body.style.overflow = 'auto';
     editingLeadId = null;
+    document.getElementById('lead-form').reset();
 }
 
 function editLead(id) {
@@ -2715,6 +2775,11 @@ function setupLeadForm() {
     const form = document.getElementById('lead-form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
 
         const leadData = {
             name: document.getElementById('lead-name').value,
@@ -2750,11 +2815,14 @@ function setupLeadForm() {
                 closeLeadModal();
                 loadAdminData();
             } else {
-                alert('Error saving lead. Please try again.');
+                alert('Error saving lead: ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error saving lead:', error);
             alert('Error saving lead. Please try again.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 }
@@ -2772,11 +2840,11 @@ async function deleteLead(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error deleting lead. Please try again.');
+            alert('Error deleting lead: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error deleting lead:', error);
-        alert('Error deleting lead. Please try again.');
+        alert('Error deleting lead: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2910,11 +2978,11 @@ async function updateInquiryStatus(id, status) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error updating status. Please try again.');
+            alert('Error updating status: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error updating status:', error);
-        alert('Error updating status. Please try again.');
+        alert('Error updating status: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -2931,11 +2999,11 @@ async function deleteInquiry(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error deleting contact request. Please try again.');
+            alert('Error deleting contact request: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error deleting contact request:', error);
-        alert('Error deleting contact request. Please try again.');
+        alert('Error deleting contact request: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -3003,11 +3071,11 @@ async function toggleNotificationRead(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error updating notification. Please try again.');
+            alert('Error updating notification: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error updating notification:', error);
-        alert('Error updating notification. Please try again.');
+        alert('Error updating notification: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -3022,11 +3090,11 @@ async function markAllNotificationsRead() {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error marking all notifications as read. Please try again.');
+            alert('Error marking all notifications as read: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error marking all notifications as read:', error);
-        alert('Error marking all notifications as read. Please try again.');
+        alert('Error marking all notifications as read: ' + (error.message || 'Unknown error'));
     }
 }
 
@@ -3043,11 +3111,11 @@ async function deleteNotification(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            alert('Error deleting notification. Please try again.');
+            alert('Error deleting notification: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error deleting notification:', error);
-        alert('Error deleting notification. Please try again.');
+        alert('Error deleting notification: ' + (error.message || 'Unknown error'));
     }
 }
 
