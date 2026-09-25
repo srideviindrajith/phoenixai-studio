@@ -9,14 +9,18 @@
     "reset-password": "node scripts/reset-admin-password.js",
     "seed-remote": "node --env-file=.env.local scripts/seed-remote.js",
     "test": "node --test tests/storage.test.js",
-    "test:smoke": "node test-smoke.js"
+    "test:smoke": "node test-smoke.js",
+    "test:phase1": "playwright test tests/admin-panel-phase1.spec.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
+    "@vercel/blob": "^0.23.4",
     "body-parser": "^1.20.2",
     "dotenv": "^17.4.2",
-    "@vercel/blob": "^0.23.4"
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
   },
   "engines": {
     "node": ">=18.0.0"
