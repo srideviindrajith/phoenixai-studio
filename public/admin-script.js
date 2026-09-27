@@ -79,7 +79,6 @@ let editingDemoWebsiteId = null;
 let editingAIAgentId = null;
 let editingModuleId = null;
 let editingPackageCategoryId = null;
-let editingServiceCategoryId = null;
 let editingServiceId = null;
 let editingLeadId = null;
 
@@ -141,7 +140,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAIAgentForm();
     setupModuleForm();
     setupPackageCategoryForm();
-    setupServiceCategoryForm();
     setupServiceForm();
     setupLeadForm();
     setupSearch();
@@ -1484,7 +1482,7 @@ async function movePackageCategoryUp(id) {
     
     if (index <= 0) return;
     
-    // Swap with previous (optimistic local update, rolled back below if the save fails)
+    // Swap with previous
     const temp = sortedCategories[index].displayOrder;
     sortedCategories[index].displayOrder = sortedCategories[index - 1].displayOrder;
     sortedCategories[index - 1].displayOrder = temp;
@@ -1505,15 +1503,10 @@ async function movePackageCategoryUp(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            // Undo the optimistic swap so the in-memory list matches what's actually saved.
-            sortedCategories[index - 1].displayOrder = sortedCategories[index].displayOrder;
-            sortedCategories[index].displayOrder = temp;
             showAdminError(data.error || 'Error reordering package categories. Please try again.');
         }
     } catch (error) {
         console.error('Error reordering package categories:', error);
-        sortedCategories[index - 1].displayOrder = sortedCategories[index].displayOrder;
-        sortedCategories[index].displayOrder = temp;
         let errorMessage = 'Error reordering package categories. Please try again.';
         if (error.message.includes('503')) {
             errorMessage = 'Storage is not configured. Please set up Upstash Redis in your Vercel project settings.';
@@ -1531,7 +1524,7 @@ async function movePackageCategoryDown(id) {
     
     if (index >= sortedCategories.length - 1) return;
     
-    // Swap with next (optimistic local update, rolled back below if the save fails)
+    // Swap with next
     const temp = sortedCategories[index].displayOrder;
     sortedCategories[index].displayOrder = sortedCategories[index + 1].displayOrder;
     sortedCategories[index + 1].displayOrder = temp;
@@ -1552,14 +1545,10 @@ async function movePackageCategoryDown(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            sortedCategories[index + 1].displayOrder = sortedCategories[index].displayOrder;
-            sortedCategories[index].displayOrder = temp;
             showAdminError(data.error || 'Error reordering package categories. Please try again.');
         }
     } catch (error) {
         console.error('Error reordering package categories:', error);
-        sortedCategories[index + 1].displayOrder = sortedCategories[index].displayOrder;
-        sortedCategories[index].displayOrder = temp;
         let errorMessage = 'Error reordering package categories. Please try again.';
         if (error.message.includes('503')) {
             errorMessage = 'Storage is not configured. Please set up Upstash Redis in your Vercel project settings.';
@@ -1938,80 +1927,8 @@ function editServiceCategory(id) {
     const category = serviceCategories.find(c => c.id === id);
     if (!category) return;
 
-    editingServiceCategoryId = id;
-    document.getElementById('service-category-modal-title').textContent = 'Edit Service Category';
-    document.getElementById('service-category-id').value = category.id;
-    document.getElementById('service-category-name').value = category.name;
-    document.getElementById('service-category-description').value = category.description;
-    document.getElementById('service-category-display-order').value = category.displayOrder;
-    document.getElementById('service-category-enabled').checked = category.enabled;
-
-    document.getElementById('service-category-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeServiceCategoryModal() {
-    document.getElementById('service-category-modal').classList.remove('active');
-    document.body.style.overflow = 'auto';
-    editingServiceCategoryId = null;
-    document.getElementById('service-category-form').reset();
-}
-
-// Setup service category form
-function setupServiceCategoryForm() {
-    const form = document.getElementById('service-category-form');
-    if (!form) return;
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const submitButton = e.target.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
-        submitButton.disabled = true;
-        submitButton.textContent = 'Saving...';
-
-        const originalEnabled = document.getElementById('service-category-enabled').checked;
-
-        const categoryData = {
-            name: document.getElementById('service-category-name').value,
-            description: document.getElementById('service-category-description').value,
-            displayOrder: parseInt(document.getElementById('service-category-display-order').value),
-            enabled: document.getElementById('service-category-enabled').checked
-        };
-
-        try {
-            const response = await fetch(`/api/admin/service-categories/${editingServiceCategoryId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(categoryData)
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                closeServiceCategoryModal();
-                loadAdminData();
-            } else {
-                document.getElementById('service-category-enabled').checked = originalEnabled;
-                showAdminError(data.error || 'Error updating service category. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error updating service category:', error);
-            document.getElementById('service-category-enabled').checked = originalEnabled;
-
-            let errorMessage = 'Error updating service category. Please try again.';
-            if (error.message.includes('503')) {
-                errorMessage = 'Storage is not configured. Please set up Upstash Redis in your Vercel project settings.';
-            } else if (error.message.includes('500')) {
-                errorMessage = 'Server error. Please try again.';
-            }
-            showAdminError(errorMessage);
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = originalText;
-        }
-    });
+    // For now, just alert - can be extended to full modal editing
+    alert(`Edit category: ${category.name}\nDescription: ${category.description}\nEnabled: ${category.enabled}\nOrder: ${category.displayOrder}`);
 }
 
 // Move service category up
@@ -2041,14 +1958,10 @@ async function moveServiceCategoryUp(id) {
         if (data.success) {
             loadAdminData();
         } else {
-            sortedCategories[index - 1].displayOrder = sortedCategories[index].displayOrder;
-            sortedCategories[index].displayOrder = temp;
             showAdminError(data.error || 'Error reordering service categories. Please try again.');
         }
     } catch (error) {
         console.error('Error reordering service categories:', error);
-        sortedCategories[index - 1].displayOrder = sortedCategories[index].displayOrder;
-        sortedCategories[index].displayOrder = temp;
         let errorMessage = 'Error reordering service categories. Please try again.';
         if (error.message.includes('503')) {
             errorMessage = 'Storage is not configured. Please set up Upstash Redis in your Vercel project settings.';
@@ -2080,19 +1993,16 @@ async function moveServiceCategoryDown(id) {
             },
             body: JSON.stringify({ categoryIds })
         });
+
         const data = await response.json();
 
         if (data.success) {
             loadAdminData();
         } else {
-            sortedCategories[index + 1].displayOrder = sortedCategories[index].displayOrder;
-            sortedCategories[index].displayOrder = temp;
             showAdminError(data.error || 'Error reordering service categories. Please try again.');
         }
     } catch (error) {
         console.error('Error reordering service categories:', error);
-        sortedCategories[index + 1].displayOrder = sortedCategories[index].displayOrder;
-        sortedCategories[index].displayOrder = temp;
         let errorMessage = 'Error reordering service categories. Please try again.';
         if (error.message.includes('503')) {
             errorMessage = 'Storage is not configured. Please set up Upstash Redis in your Vercel project settings.';
