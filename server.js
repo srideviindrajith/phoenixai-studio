@@ -572,6 +572,31 @@ function resetLoginAttempts(req) {
   loginAttempts.delete(clientIp(req));
 }
 
+// Same shape as loginAttempts, kept separate so a burst of bad recovery-code
+// guesses can't also lock the admin out of normal password login.
+const recoveryAttempts = new Map(); // ip -> { count, firstAttempt }
+function recoveryRateLimiter(req, res, next) {
+  const ip = clientIp(req);
+  const now = Date.now();
+  if (recoveryAttempts.size > 500) {
+    for (const [key, value] of recoveryAttempts) {
+      if (now - value.firstAttempt > LOGIN_WINDOW_MS) recoveryAttempts.delete(key);
+    }
+  }
+  const entry = recoveryAttempts.get(ip);
+  if (!entry || now - entry.firstAttempt > LOGIN_WINDOW_MS) {
+    recoveryAttempts.set(ip, { count: 1, firstAttempt: now });
+    return next();
+  }
+  if (entry.count >= LOGIN_MAX_ATTEMPTS) {
+    const retryAfterSec = Math.ceil((entry.firstAttempt + LOGIN_WINDOW_MS - now) / 1000);
+    res.setHeader('Retry-After', retryAfterSec);
+    return res.status(429).json({ error: `Too many attempts. Try again in ${Math.ceil(retryAfterSec / 60)} minute(s).` });
+  }
+  entry.count += 1;
+  next();
+}
+
 // Middleware
 app.disable('x-powered-by'); // don't advertise the stack to scanners
 
@@ -1843,6 +1868,10 @@ app.get('/api/health', async (req, res) => {
   if (IS_PROD && !process.env.ADMIN_PASSWORD) problems.push('ADMIN_PASSWORD is not set (the default password applies until it is changed in Settings).');
   if (IS_PROD && !process.env.SESSION_SECRET) problems.push('SESSION_SECRET is not set.');
 
+  // Optional: not having this configured doesn't mean anything is broken, so it's
+  // reported separately and never turns `ok` false or the status code to 503.
+  status.passwordRecoveryConfigured = Boolean(process.env.ADMIN_RECOVERY_CODE);
+
   status.problems = problems;
   status.ok = problems.length === 0;
   res.status(status.ok ? 200 : 503).json(status);
@@ -1941,6 +1970,53 @@ app.post('/api/admin/login', loginRateLimiter, async (req, res, next) => {
 app.post('/api/admin/logout', (req, res) => {
   clearAuthCookie(req, res);
   res.json({ success: true });
+});
+
+// --- Password recovery via a secret recovery code (no email service needed) ---
+// Set ADMIN_RECOVERY_CODE in your host's environment variables (Vercel: Settings ->
+// Environment Variables). Anyone who knows this code can set a brand-new admin
+// password without knowing the old one, so treat it like a second password and
+// only you should know it.
+app.post('/api/admin/recover-password', recoveryRateLimiter, async (req, res, next) => {
+  try {
+    const configuredCode = process.env.ADMIN_RECOVERY_CODE;
+    if (!configuredCode) {
+      return res.status(503).json({
+        error: 'Password recovery is not set up for this deployment. Set ADMIN_RECOVERY_CODE in your environment variables and redeploy, then try again.'
+      });
+    }
+
+    const { recoveryCode, newPassword } = req.body || {};
+    if (typeof recoveryCode !== 'string' || recoveryCode.length === 0 || recoveryCode.length > MAX_PASSWORD_LENGTH) {
+      return res.status(400).json({ error: 'Please enter the recovery code.' });
+    }
+
+    // Constant-time comparison so response timing can't be used to guess the code
+    // character by character. Buffers must be equal length for timingSafeEqual.
+    const a = Buffer.from(recoveryCode);
+    const b = Buffer.from(configuredCode);
+    const codeMatches = a.length === b.length && crypto.timingSafeEqual(a, b);
+    if (!codeMatches) {
+      return res.status(401).json({ error: 'Incorrect recovery code.' });
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters' });
+    }
+    if (newPassword.length > MAX_PASSWORD_LENGTH) {
+      return res.status(400).json({ error: `New password must be at most ${MAX_PASSWORD_LENGTH} characters` });
+    }
+
+    const data = readData();
+    data.settings.adminPassword = await hashPasswordAsync(newPassword);
+    writeData(data);
+
+    resetLoginAttempts(req);
+    recoveryAttempts.delete(clientIp(req));
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.post('/api/admin/change-password', requireAdmin, async (req, res, next) => {
