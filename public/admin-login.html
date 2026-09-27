@@ -219,6 +219,41 @@
             .login-box { padding: 40px 24px; }
         }
 
+        .forgot-link {
+            display: inline-block;
+            margin-top: 14px;
+            background: none;
+            border: none;
+            padding: 0;
+            color: #A3A3A3;
+            text-decoration: underline;
+            font-size: 0.85em;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .forgot-link:hover, .forgot-link:focus-visible { color: var(--phoenix-orange); }
+
+        .recovery-panel {
+            display: none;
+            text-align: left;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .recovery-panel.open { display: block; }
+        .recovery-panel p {
+            color: #A3A3A3;
+            font-size: 0.82em;
+            margin: 0 0 14px;
+            line-height: 1.5;
+        }
+        .recovery-success {
+            color: #4ADE80;
+            font-size: 0.9em;
+            min-height: 1.4em;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             * { transition: none !important; }
         }
@@ -246,6 +281,33 @@
                 <button type="submit" class="login-button" id="login-button">Login</button>
             </form>
             <div id="error-message" class="error-message" role="alert" aria-live="polite"></div>
+
+            <button type="button" class="forgot-link" id="forgot-password-toggle">Forgot password?</button>
+
+            <div class="recovery-panel" id="recovery-panel">
+                <p>Enter the recovery code set in this site's environment variables (<code>ADMIN_RECOVERY_CODE</code>), then choose a new password.</p>
+                <form id="recovery-form" novalidate>
+                    <div class="form-group">
+                        <label for="recovery-code">Recovery code</label>
+                        <input type="password" id="recovery-code" name="recoveryCode" autocomplete="off"
+                               autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="256" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New password</label>
+                        <input type="password" id="new-password" name="newPassword" autocomplete="new-password"
+                               autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="256" minlength="8" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm new password</label>
+                        <input type="password" id="confirm-password" name="confirmPassword" autocomplete="new-password"
+                               autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="256" minlength="8" required>
+                    </div>
+                    <button type="submit" class="login-button" id="recovery-button">Reset Password</button>
+                </form>
+                <div id="recovery-message" class="error-message" role="alert" aria-live="polite"></div>
+                <div id="recovery-success" class="recovery-success" role="status" aria-live="polite"></div>
+            </div>
+
             <noscript><p class="noscript-message">JavaScript is required to sign in.</p></noscript>
             <a href="/" class="back-link">&larr; Back to Website</a>
         </div>
@@ -331,6 +393,93 @@
                     clearTimeout(timer);
                 }
                 setBusy(false);
+            });
+
+            // --- Forgot password (recovery code) ---
+            var forgotToggle = document.getElementById('forgot-password-toggle');
+            var recoveryPanel = document.getElementById('recovery-panel');
+            var recoveryForm = document.getElementById('recovery-form');
+            var recoveryCodeInput = document.getElementById('recovery-code');
+            var newPasswordInput = document.getElementById('new-password');
+            var confirmPasswordInput = document.getElementById('confirm-password');
+            var recoveryButton = document.getElementById('recovery-button');
+            var recoveryMessage = document.getElementById('recovery-message');
+            var recoverySuccess = document.getElementById('recovery-success');
+            var recoverySubmitting = false;
+
+            forgotToggle.addEventListener('click', function () {
+                var willOpen = !recoveryPanel.classList.contains('open');
+                recoveryPanel.classList.toggle('open', willOpen);
+                forgotToggle.textContent = willOpen ? 'Hide recovery form' : 'Forgot password?';
+                if (willOpen) recoveryCodeInput.focus();
+            });
+
+            function setRecoveryBusy(busy) {
+                recoverySubmitting = busy;
+                recoveryButton.disabled = busy;
+                recoveryButton.textContent = busy ? 'Resetting\u2026' : 'Reset Password';
+            }
+
+            recoveryForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                if (recoverySubmitting) return;
+
+                recoveryMessage.textContent = '';
+                recoverySuccess.textContent = '';
+
+                var code = recoveryCodeInput.value;
+                var newPassword = newPasswordInput.value;
+                var confirmPassword = confirmPasswordInput.value;
+
+                if (!code) {
+                    recoveryMessage.textContent = 'Please enter the recovery code.';
+                    return;
+                }
+                if (newPassword.length < 8) {
+                    recoveryMessage.textContent = 'New password must be at least 8 characters.';
+                    return;
+                }
+                if (newPassword !== confirmPassword) {
+                    recoveryMessage.textContent = 'Passwords do not match.';
+                    return;
+                }
+
+                setRecoveryBusy(true);
+
+                var controller = new AbortController();
+                var timer = setTimeout(function () { controller.abort(); }, 15000);
+
+                try {
+                    var response = await fetch('/api/admin/recover-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        cache: 'no-store',
+                        body: JSON.stringify({ recoveryCode: code, newPassword: newPassword }),
+                        signal: controller.signal
+                    });
+
+                    var data = null;
+                    try { data = await response.json(); } catch (parseErr) { /* handled below */ }
+
+                    if (response.ok && data && data.success) {
+                        recoveryForm.reset();
+                        recoverySuccess.textContent = 'Password updated. You can log in with your new password now.';
+                    } else if (data && data.error) {
+                        recoveryMessage.textContent = data.error;
+                    } else if (response.status >= 500) {
+                        recoveryMessage.textContent = 'The server had a problem. Please try again in a moment.';
+                    } else {
+                        recoveryMessage.textContent = 'Could not reset the password. Please try again.';
+                    }
+                } catch (err) {
+                    recoveryMessage.textContent = err && err.name === 'AbortError'
+                        ? 'The server took too long to respond. Please try again.'
+                        : 'Could not reach the server. Check your connection and try again.';
+                } finally {
+                    clearTimeout(timer);
+                }
+                setRecoveryBusy(false);
             });
         })();
     </script>
