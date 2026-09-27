@@ -1913,22 +1913,15 @@ app.get('/api/public/bootstrap', (req, res) => {
   const publishedAIAgents = (data.aiAgents || []).filter(a => a.published);
   const activeServices = (data.services || []).filter(s => s.active);
 
-  // Get enabled modules and categories only -- unlike /api/admin/bootstrap (which
-  // intentionally sends everything so the admin can manage disabled items too),
-  // this is the public-facing endpoint and must match what /api/package-categories
-  // and /api/service-categories already filter to, or a disabled category's tab
-  // and packages/services can still appear on the live site.
+  // Get enabled modules
   const enabledModules = (data.settings.modules || []).filter(m => m.enabled);
-  const enabledPackageCategories = (data.settings.packageCategories || []).filter(c => c.enabled !== false);
-  const enabledServiceCategories = (data.settings.serviceCategories || []).filter(c => c.enabled !== false);
 
   res.json({
     logo: data.settings.logo || '',
     modules: enabledModules,
     templates: publishedTemplates,
     packages: publishedPackages,
-    packageCategories: enabledPackageCategories,
-    serviceCategories: enabledServiceCategories,
+    packageCategories: data.settings.packageCategories || [],
     services: activeServices,
     demoWebsites: publishedDemoWebsites,
     aiAgents: publishedAIAgents,
@@ -2326,30 +2319,6 @@ app.put('/api/admin/modules/reorder', requireAdmin, (req, res) => {
   res.json({ success: true, modules: reorderedModules });
 });
 
-// A "module" (Settings -> Modules) and a package/service "category" (Settings ->
-// Package Categories / Service Categories) are stored as three separate lists, but
-// an admin naturally expects them to be the same on/off switch when their names
-// match (e.g. a "Career Builder" module and a "Career Builder" package category).
-// Without this, disabling the module left the category's packages/services fully
-// visible on the public site, which looked like a bug. Names are compared exact,
-// trimmed and case-insensitive, so this only links items that are clearly meant
-// to be the same thing.
-function normalizeCategoryName(name) {
-  return String(name || '').trim().toLowerCase();
-}
-
-function syncCategoriesToModule(data, module) {
-  const target = normalizeCategoryName(module.name);
-  if (!target) return;
-  ['packageCategories', 'serviceCategories'].forEach((key) => {
-    (data.settings[key] || []).forEach((category) => {
-      if (normalizeCategoryName(category.name) === target) {
-        category.enabled = module.enabled;
-      }
-    });
-  });
-}
-
 app.put('/api/admin/modules/:id', requireAdmin, (req, res) => {
   const data = readData();
 
@@ -2364,7 +2333,6 @@ app.put('/api/admin/modules/:id', requireAdmin, (req, res) => {
   }
 
   const module = data.settings.modules[moduleIndex];
-  const enabledChanged = req.body.enabled !== undefined && req.body.enabled !== module.enabled;
 
   // Update allowed fields
   module.name = req.body.name || module.name;
@@ -2375,7 +2343,6 @@ app.put('/api/admin/modules/:id', requireAdmin, (req, res) => {
   module.showInSidebar = req.body.showInSidebar !== undefined ? req.body.showInSidebar : module.showInSidebar;
 
   data.settings.modules[moduleIndex] = module;
-  if (enabledChanged) syncCategoriesToModule(data, module);
   writeData(data);
 
   res.json({ success: true, module });
