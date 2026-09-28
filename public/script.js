@@ -246,30 +246,76 @@ function setupNavbarScroll() {
     }, { passive: true });
 }
 
-// Highlight active navigation based on scroll
+// Highlight active navigation based on scroll.
+// The old version ran on every raw scroll event, read layout (offsetTop /
+// clientHeight) for every section each time, and rewrote the class of every
+// link. That forced layout on each event and made scrolling lag. Now:
+//   - work runs at most once per animation frame (rAF throttle),
+//   - section positions are measured once and re-measured only when the page
+//     size changes (content loading in, resize), never during scrolling,
+//   - the DOM is touched only when the active section actually changes.
 function setupActiveNavigation() {
-    const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    window.addEventListener('scroll', () => {
+    const sections = Array.from(document.querySelectorAll('section[id]'));
+    const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+    if (!sections.length || !navLinks.length) return;
+
+    let sectionTops = [];   // [{ id, top }] in document order
+    let currentId = null;   // last id we highlighted (null = none yet)
+    let ticking = false;
+
+    function measureSections() {
+        const scrollY = window.pageYOffset;
+        // Skip hidden sections (display:none => zero height). They report a top
+        // of 0, which used to make them look like the "current" section.
+        sectionTops = sections.reduce((list, section) => {
+            const rect = section.getBoundingClientRect();
+            if (rect.height > 0) list.push({ id: section.getAttribute('id'), top: rect.top + scrollY });
+            return list;
+        }, []);
+    }
+
+    function updateActive() {
+        ticking = false;
+        const y = window.pageYOffset;
         let current = '';
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            
-            if (window.pageYOffset >= sectionTop - 100) {
-                current = section.getAttribute('id');
-            }
-        });
-        
+        // Same rule as before: the last section whose top has passed (top - 100).
+        for (let i = 0; i < sectionTops.length; i++) {
+            if (y >= sectionTops[i].top - 100) current = sectionTops[i].id;
+        }
+        if (current === currentId) return; // nothing changed: no DOM writes
+        currentId = current;
+        const target = '#' + current;
         navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}`) {
-                link.classList.add('active');
-            }
+            link.classList.toggle('active', link.getAttribute('href') === target);
         });
-    });
+    }
+
+    function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(updateActive);
+    }
+
+    function remeasure() {
+        measureSections();
+        onScroll();
+    }
+
+    measureSections();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', remeasure, { passive: true });
+    window.addEventListener('load', remeasure);
+    // Sections change height as data loads in and as demo/agent detail views
+    // open, so re-measure when the page's total height changes.
+    if (typeof ResizeObserver === 'function') {
+        let pending = false;
+        new ResizeObserver(() => {
+            if (pending) return;
+            pending = true;
+            window.requestAnimationFrame(() => { pending = false; remeasure(); });
+        }).observe(document.body);
+    }
+    updateActive();
 }
 
 // Toggle mobile menu. Keeps aria-expanded in sync so screen readers announce
