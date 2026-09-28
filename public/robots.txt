@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://phoenixaistudio.com/sitemap.xml
+Sitemap: https://phoenixaistudio.in/sitemap.xml
