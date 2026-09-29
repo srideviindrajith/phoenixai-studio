@@ -29,3 +29,11 @@ Thumbs.db
 
 # AI tool work folders
 .kilo/
+.vercel
+.env*
+
+# Local dev / test artifacts that should never be committed
+cookies.txt
+test-results/
+tests/screenshots/
+playwright-report/
