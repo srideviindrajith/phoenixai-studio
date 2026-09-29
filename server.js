@@ -168,6 +168,57 @@ function fileUrl(file) {
   return file.blobUrl || `/uploads/${file.filename}`;
 }
 
+// --- Email alert when a visitor submits the contact form (optional) --------------
+// Set RESEND_API_KEY and NOTIFY_EMAIL to get an email the moment someone submits
+// the contact form. Get a free API key at https://resend.com (no card required,
+// 100 emails/day on the free plan). Without a verified sending domain, use the
+// shared RESEND_FROM default below, which Resend accepts out of the box.
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || '';
+const RESEND_FROM = process.env.RESEND_FROM || 'PhoenixAI Studio <onboarding@resend.dev>';
+// Overridable so tests can point this at a mock server instead of the real API.
+const RESEND_API_URL = process.env.RESEND_API_URL || 'https://api.resend.com/emails';
+const EMAIL_ALERTS_CONFIGURED = Boolean(RESEND_API_KEY && NOTIFY_EMAIL);
+
+function escapeHtmlForEmail(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Best-effort: a visitor's inquiry must always be saved, whether or not the email
+// alert goes out, so this never throws and the caller never awaits it.
+async function sendInquiryAlertEmail(inquiry) {
+  if (!EMAIL_ALERTS_CONFIGURED) return;
+  const esc = escapeHtmlForEmail;
+  const html = `
+    <h2>New enquiry from ${esc(inquiry.name)}</h2>
+    <p><strong>Email:</strong> ${esc(inquiry.email)}</p>
+    ${inquiry.phone ? `<p><strong>Phone:</strong> ${esc(inquiry.phone)}</p>` : ''}
+    ${inquiry.service ? `<p><strong>Service:</strong> ${esc(inquiry.service)}</p>` : ''}
+    ${inquiry.subject ? `<p><strong>Subject:</strong> ${esc(inquiry.subject)}</p>` : ''}
+    <p><strong>Message:</strong></p>
+    <p>${esc(inquiry.message).replace(/\n/g, '<br>')}</p>
+  `;
+  try {
+    const res = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: [NOTIFY_EMAIL],
+        reply_to: inquiry.email,
+        subject: `New enquiry: ${inquiry.subject || inquiry.name}`,
+        html
+      })
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error('[EMAIL] Resend rejected the alert email:', res.status, body);
+    }
+  } catch (err) {
+    console.error('[EMAIL] Could not send the inquiry alert email:', err.message);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Per-request data context (remote storage only)
 //
@@ -381,18 +432,15 @@ function sign(value) {
   return crypto.createHmac('sha256', SESSION_SECRET).update(value).digest('hex');
 }
 
-// A short fingerprint of the CURRENT admin password hash. It is stored inside
-// every auth cookie and compared again on each request, so changing or
-// recovering the password instantly invalidates every session issued before it
-// (stateless cookies otherwise stay valid until they expire). It is an HMAC, so
-// the password hash itself is never exposed in the cookie.
-function passwordFingerprint(storedPassword) {
-  return sign('pv:' + String(storedPassword || '')).slice(0, 16);
-}
-
-function createAuthCookieValue(storedPassword, remember) {
+// `v` is the session version the cookie was issued under. Changing or recovering the
+// admin password bumps settings.sessionVersion, which makes every older cookie
+// invalid (a stolen or forgotten-open session can't outlive a password change).
+// Cookies issued before this existed have no `v` and count as version 0, so nobody
+// is logged out by deploying this. `r` remembers the "keep me signed in" choice so a
+// re-issued cookie keeps the same lifetime.
+function createAuthCookieValue(sessionVersion = 0, remember = false) {
   const csrfToken = crypto.randomBytes(24).toString('hex');
-  const payload = JSON.stringify({ isAdmin: true, exp: Date.now() + AUTH_MAX_AGE_MS, csrf: csrfToken, pv: passwordFingerprint(storedPassword), rm: Boolean(remember) });
+  const payload = JSON.stringify({ isAdmin: true, exp: Date.now() + AUTH_MAX_AGE_MS, csrf: csrfToken, v: sessionVersion, r: remember ? 1 : 0 });
   const encoded = Buffer.from(payload).toString('base64url');
   return { cookieValue: `${encoded}.${sign(encoded)}`, csrfToken };
 }
@@ -427,8 +475,20 @@ function useSecureCookies(req) {
   return IS_PROD && req.secure;
 }
 
-// Returns the decoded { isAdmin, exp, csrf } payload if the cookie is
-// present, correctly signed, unexpired and not revoked — otherwise null.
+// The session version currently stored with the site data, or null when the data
+// isn't available for this request (then a cookie can't be verified: fail closed).
+function currentSessionVersion() {
+  try {
+    const data = readData();
+    return Number(data.settings && data.settings.sessionVersion) || 0;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Returns the decoded { isAdmin, exp, csrf, v, r } payload if the cookie is
+// present, correctly signed, unexpired, not revoked and issued under the current
+// session version — otherwise null.
 function verifyAuthCookie(req) {
   const cookies = parseCookies(req);
   const raw = cookies[AUTH_COOKIE];
@@ -445,12 +505,8 @@ function verifyAuthCookie(req) {
   try {
     const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
     if (!payload.isAdmin || !(payload.exp > Date.now())) return null;
-    // Reject sessions issued before the password was last changed/recovered.
-    // Cookies without a fingerprint (issued by older versions) are rejected too.
-    const currentPassword = readData().settings.adminPassword;
-    const expectedPv = Buffer.from(passwordFingerprint(currentPassword));
-    const actualPv = Buffer.from(typeof payload.pv === 'string' ? payload.pv : '');
-    if (actualPv.length !== expectedPv.length || !crypto.timingSafeEqual(actualPv, expectedPv)) return null;
+    const expectedVersion = currentSessionVersion();
+    if (expectedVersion === null || (Number(payload.v) || 0) !== expectedVersion) return null;
     payload._signature = signature;
     return payload;
   } catch (e) {
@@ -462,8 +518,8 @@ function verifyAuthCookie(req) {
 // Max-Age, i.e. they are session cookies: the browser drops them when it is
 // closed, so the next visit to /admin asks for the password again. (Before,
 // every login was remembered for 12 hours, so /admin skipped the login page.)
-function setAuthCookie(req, res, remember, storedPassword) {
-  const { cookieValue, csrfToken } = createAuthCookieValue(storedPassword, remember);
+function setAuthCookie(req, res, remember, sessionVersion = 0) {
+  const { cookieValue, csrfToken } = createAuthCookieValue(sessionVersion, remember);
   const maxAge = remember ? [`Max-Age=${Math.floor(AUTH_MAX_AGE_MS / 1000)}`] : [];
   const authParts = [
     `${AUTH_COOKIE}=${encodeURIComponent(cookieValue)}`,
@@ -701,22 +757,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), STATIC_OPTS)
 // any change before the response is sent (see "Per-request data context" above).
 if (USE_REMOTE_STORAGE) {
   app.use(async (req, res, next) => {
-    // The /admin page decides between the login page and the dashboard by checking
-    // the session, and that check compares against the stored admin password (see
-    // verifyAuthCookie). So for /admin ONLY when a session cookie is present do we
-    // load the data; visitors without one get the login page without touching
-    // Redis, and if Redis is down the page still loads (the check fails closed).
-    const isAdminPage = req.path === '/admin';
-    if (isAdminPage) {
-      if (!parseCookies(req)[AUTH_COOKIE]) return next();
-    } else if (!req.path.startsWith('/api/') || req.path === '/api/health') {
-      return next();
-    }
+    // GET /admin decides between the dashboard and the login page, and that check
+    // needs the stored session version, so it gets the data context too. Only when the
+    // visitor actually sent an admin cookie: anonymous visitors just get the login
+    // page and must not cause a Redis read.
+    const isAdminPage = req.method === 'GET' && req.path === '/admin' &&
+      /(?:^|;\s*)phx_admin=/.test(req.headers.cookie || '');
+    if (!isAdminPage && (!req.path.startsWith('/api/') || req.path === '/api/health')) return next();
 
     let ctx;
     try {
       ctx = await loadDataContext();
     } catch (err) {
+      // Can't read the session version: /admin falls back to the login page (fail closed).
       if (isAdminPage) return next();
       return next(err);
     }
@@ -1782,6 +1835,7 @@ function requireAdmin(req, res, next) {
   if (!auth) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  req.auth = auth;
   if (MUTATING_METHODS.includes(req.method)) {
     const token = req.headers['x-csrf-token'];
     if (!token || token !== auth.csrf) {
@@ -1830,7 +1884,7 @@ app.get('/api/templates/featured', (req, res) => {
 app.get('/api/templates/category/:category', (req, res) => {
   const data = readData();
   const categoryTemplates = data.templates
-    .filter(t => t.published && t.category.toLowerCase() === req.params.category.toLowerCase())
+    .filter(t => t.published && String(t.category || '').toLowerCase() === String(req.params.category).toLowerCase())
     .sort((a, b) => a.sortOrder - b.sortOrder);
   res.json(categoryTemplates);
 });
@@ -1897,6 +1951,7 @@ app.get('/api/health', async (req, res) => {
   // Optional: not having this configured doesn't mean anything is broken, so it's
   // reported separately and never turns `ok` false or the status code to 503.
   status.passwordRecoveryConfigured = Boolean(process.env.ADMIN_RECOVERY_CODE);
+  status.emailAlertsConfigured = EMAIL_ALERTS_CONFIGURED;
 
   status.problems = problems;
   status.ok = problems.length === 0;
@@ -1906,7 +1961,10 @@ app.get('/api/health', async (req, res) => {
 // Backup: everything except the password hash.
 app.get('/api/admin/export', requireAdmin, (req, res) => {
   const data = JSON.parse(JSON.stringify(readData()));
-  if (data.settings) delete data.settings.adminPassword;
+  if (data.settings) {
+    delete data.settings.adminPassword;
+    delete data.settings.sessionVersion;
+  }
   res.setHeader('Content-Disposition', `attachment; filename="phoenixai-backup-${new Date().toISOString().slice(0, 10)}.json"`);
   res.json(data);
 });
@@ -1928,30 +1986,34 @@ app.get('/admin', (req, res, next) => {
   sendPublicFile(res, next, (!forceLogin && verifyAuthCookie(req)) ? 'admin.html' : 'admin-login.html');
 });
 
-// Single source of truth for what the PUBLIC site may show. Both the individual
-// endpoints (/api/packages, /api/services, ...) and /api/public/bootstrap use
-// these, so they can never disagree again. A category counts as enabled unless
-// it is explicitly `enabled: false`; items in a disabled category are hidden.
-function publicPackageCategories(data) {
-  return ((data.settings && data.settings.packageCategories) || [])
-    .filter(c => c.enabled !== false)
-    .sort((a, b) => a.displayOrder - b.displayOrder);
-}
+// --- What the public site is allowed to show ---------------------------------
+// Categories can be switched off in Settings. Everything inside a disabled category
+// has to disappear from the public site on EVERY endpoint (lists, featured, tabs and
+// the bootstrap the home page really uses), and the admin's ordering (sortOrder /
+// displayOrder) has to apply everywhere too. Keeping this in one place stops the
+// endpoints drifting apart again (the bootstrap once ignored both).
+const byNumber = (field) => (a, b) => (Number(a[field]) || 0) - (Number(b[field]) || 0);
+const disabledCategoryIds = (categories) =>
+  new Set((categories || []).filter(c => c && c.enabled === false).map(c => c.id));
 
-function publicPackages(data) {
-  const categories = (data.settings && data.settings.packageCategories) || [];
-  const disabledIds = new Set(categories.filter(c => c.enabled === false).map(c => c.id));
+function getPublicPackages(data) {
+  const disabled = disabledCategoryIds(data.settings.packageCategories);
   return (data.packages || [])
-    .filter(p => p.published && !disabledIds.has(p.category))
-    .sort((a, b) => a.sortOrder - b.sortOrder);
+    .filter(p => p.published && !disabled.has(p.category))
+    .sort(byNumber('sortOrder'));
 }
 
-function publicServices(data) {
-  const categories = (data.settings && data.settings.serviceCategories) || [];
-  const disabledIds = new Set(categories.filter(c => c.enabled === false).map(c => c.id));
+function getPublicPackageCategories(data) {
+  return (data.settings.packageCategories || [])
+    .filter(c => c.enabled !== false)
+    .sort(byNumber('displayOrder'));
+}
+
+function getPublicServices(data) {
+  const disabled = disabledCategoryIds(data.settings.serviceCategories);
   return (data.services || [])
-    .filter(s => s.active && !disabledIds.has(s.category))
-    .sort((a, b) => a.displayOrder - b.displayOrder);
+    .filter(s => s.active && !disabled.has(s.category))
+    .sort(byNumber('displayOrder'));
 }
 
 // Public bootstrap endpoint - returns all data needed for the home page in one request
@@ -1960,10 +2022,10 @@ app.get('/api/public/bootstrap', (req, res) => {
 
   // Filter for published items only
   const publishedTemplates = (data.templates || []).filter(t => t.published);
-  const publishedPackages = publicPackages(data);
+  const publishedPackages = getPublicPackages(data);
   const publishedDemoWebsites = (data.demoWebsites || []).filter(d => d.published);
   const publishedAIAgents = (data.aiAgents || []).filter(a => a.published);
-  const activeServices = publicServices(data);
+  const activeServices = getPublicServices(data);
 
   // Get enabled modules
   const enabledModules = (data.settings.modules || []).filter(m => m.enabled);
@@ -1973,7 +2035,7 @@ app.get('/api/public/bootstrap', (req, res) => {
     modules: enabledModules,
     templates: publishedTemplates,
     packages: publishedPackages,
-    packageCategories: publicPackageCategories(data),
+    packageCategories: getPublicPackageCategories(data),
     services: activeServices,
     demoWebsites: publishedDemoWebsites,
     aiAgents: publishedAIAgents,
@@ -2012,7 +2074,7 @@ app.post('/api/admin/login', loginRateLimiter, async (req, res, next) => {
     }
 
     resetLoginAttempts(req);
-    setAuthCookie(req, res, req.body.remember === true, data.settings.adminPassword);
+    setAuthCookie(req, res, req.body.remember === true, Number(data.settings.sessionVersion) || 0);
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -2061,6 +2123,7 @@ app.post('/api/admin/recover-password', recoveryRateLimiter, async (req, res, ne
 
     const data = readData();
     data.settings.adminPassword = await hashPasswordAsync(newPassword);
+    data.settings.sessionVersion = (Number(data.settings.sessionVersion) || 0) + 1; // signs out every existing session
     writeData(data);
 
     resetLoginAttempts(req);
@@ -2075,7 +2138,6 @@ app.post('/api/admin/change-password', requireAdmin, async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body || {};
     const data = readData();
-    const changePasswordRemember = Boolean((verifyAuthCookie(req) || {}).rm);
 
     if (typeof currentPassword !== 'string' || !(await verifyPasswordAsync(currentPassword, data.settings.adminPassword))) {
       return res.status(401).json({ error: 'Current password is incorrect' });
@@ -2089,12 +2151,12 @@ app.post('/api/admin/change-password', requireAdmin, async (req, res, next) => {
     }
 
     data.settings.adminPassword = await hashPasswordAsync(newPassword);
+    // Every other session (other browsers, a stolen cookie) is signed out; this browser
+    // gets a fresh cookie under the new version so the admin isn't kicked out mid-task.
+    data.settings.sessionVersion = (Number(data.settings.sessionVersion) || 0) + 1;
     writeData(data);
+    setAuthCookie(req, res, Boolean(req.auth && req.auth.r === 1), data.settings.sessionVersion);
 
-    // Every other session (old cookies) is now invalid. Re-issue the cookie for
-    // the browser that just changed the password so the admin isn't kicked out
-    // mid-task. Keeps the original "remember me" lifetime choice.
-    setAuthCookie(req, res, changePasswordRemember, data.settings.adminPassword);
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -2487,6 +2549,7 @@ app.post('/api/admin/inquiries', inquiryRateLimiter, (req, res) => {
   writeData(data);
 
   res.json({ success: true });
+  sendInquiryAlertEmail(newInquiry); // best-effort, after the response is already sent
 });
 
 app.get('/api/admin/inquiries', requireAdmin, (req, res) => {
@@ -2674,11 +2737,11 @@ app.delete('/api/admin/notifications/:id', requireAdmin, (req, res) => {
 
 // Package API endpoints
 app.get('/api/packages', (req, res) => {
-  res.json(publicPackages(readData()));
+  res.json(getPublicPackages(readData()));
 });
 
 app.get('/api/package-categories', (req, res) => {
-  res.json(publicPackageCategories(readData()));
+  res.json(getPublicPackageCategories(readData()));
 });
 
 /* ---------- Phoenix pet mascot ---------- */
@@ -2739,8 +2802,7 @@ app.post('/api/admin/pet-feature-settings', requireAdmin, (req, res) => {
 });
 
 app.get('/api/packages/featured', (req, res) => {
-  const data = readData();
-  const featuredPackage = publicPackages(data).find(p => p.featured);
+  const featuredPackage = getPublicPackages(readData()).find(p => p.featured);
   res.json(featuredPackage || null);
 });
 
@@ -2901,19 +2963,16 @@ app.put('/api/admin/package-categories/:id', requireAdmin, (req, res) => {
 
 // Service API endpoints
 app.get('/api/services', (req, res) => {
-  const data = readData();
-  res.json(publicServices(data));
+  res.json(getPublicServices(readData()));
 });
 
 app.get('/api/services/featured', (req, res) => {
-  const data = readData();
-  res.json(publicServices(data).filter(s => s.featured));
+  res.json(getPublicServices(readData()).filter(s => s.featured));
 });
 
 app.get('/api/services/category/:category', (req, res) => {
-  const data = readData();
   const wanted = String(req.params.category).toLowerCase();
-  res.json(publicServices(data).filter(s => String(s.category || '').toLowerCase() === wanted));
+  res.json(getPublicServices(readData()).filter(s => String(s.category || '').toLowerCase() === wanted));
 });
 
 app.get('/api/admin/services', requireAdmin, (req, res) => {
@@ -3080,7 +3139,7 @@ app.get('/api/demo-websites/category/:category', (req, res) => {
   const data = readData();
   const demoWebsites = data.demoWebsites || [];
   const categoryDemos = demoWebsites
-    .filter(d => d.published && d.category.toLowerCase() === req.params.category.toLowerCase())
+    .filter(d => d.published && String(d.category || '').toLowerCase() === String(req.params.category).toLowerCase())
     .sort((a, b) => a.sortOrder - b.sortOrder);
   res.json(categoryDemos);
 });
@@ -3227,7 +3286,7 @@ app.get('/api/ai-agents/category/:category', (req, res) => {
   const data = readData();
   const aiAgents = data.aiAgents || [];
   const categoryAgents = aiAgents
-    .filter(a => a.published && a.category.toLowerCase() === req.params.category.toLowerCase())
+    .filter(a => a.published && String(a.category || '').toLowerCase() === String(req.params.category).toLowerCase())
     .sort((a, b) => a.sortOrder - b.sortOrder);
   res.json(categoryAgents);
 });
