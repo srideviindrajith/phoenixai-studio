@@ -33,6 +33,7 @@ data.settings = data.settings || {};
 const salt = crypto.randomBytes(16).toString('hex');
 const hash = crypto.scryptSync(password, salt, 64).toString('hex');
 data.settings.adminPassword = `scrypt$${salt}$${hash}`;
+data.settings.sessionVersion = (Number(data.settings.sessionVersion) || 0) + 1; // signs out every existing session
 
 const tmpFile = `${DATA_FILE}.tmp`;
 fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2));
