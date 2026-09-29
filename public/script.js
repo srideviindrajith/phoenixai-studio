@@ -246,76 +246,55 @@ function setupNavbarScroll() {
     }, { passive: true });
 }
 
-// Highlight active navigation based on scroll.
-// The old version ran on every raw scroll event, read layout (offsetTop /
-// clientHeight) for every section each time, and rewrote the class of every
-// link. That forced layout on each event and made scrolling lag. Now:
-//   - work runs at most once per animation frame (rAF throttle),
-//   - section positions are measured once and re-measured only when the page
-//     size changes (content loading in, resize), never during scrolling,
-//   - the DOM is touched only when the active section actually changes.
+// Highlight active navigation based on scroll
 function setupActiveNavigation() {
     const sections = Array.from(document.querySelectorAll('section[id]'));
     const navLinks = Array.from(document.querySelectorAll('.nav-link'));
-    if (!sections.length || !navLinks.length) return;
+    if (sections.length === 0 || navLinks.length === 0) return;
 
-    let sectionTops = [];   // [{ id, top }] in document order
-    let currentId = null;   // last id we highlighted (null = none yet)
+    // The old handler ran on every raw scroll event (dozens per second on a phone),
+    // re-read every section's position and rewrote every link's class each time,
+    // which is what made the header feel laggy. Now: section positions are measured
+    // once (and again whenever the page height changes, e.g. when packages or agents
+    // finish loading), work happens at most once per frame, and the DOM is only
+    // touched when the highlighted link actually changes.
+    let tops = [];
+    const measure = () => {
+        tops = sections.map(section => ({ id: section.getAttribute('id'), top: section.offsetTop }));
+    };
+
+    let currentId = null;
     let ticking = false;
-
-    function measureSections() {
-        const scrollY = window.pageYOffset;
-        // Skip hidden sections (display:none => zero height). They report a top
-        // of 0, which used to make them look like the "current" section.
-        sectionTops = sections.reduce((list, section) => {
-            const rect = section.getBoundingClientRect();
-            if (rect.height > 0) list.push({ id: section.getAttribute('id'), top: rect.top + scrollY });
-            return list;
-        }, []);
-    }
-
-    function updateActive() {
+    const update = () => {
         ticking = false;
         const y = window.pageYOffset;
         let current = '';
-        // Same rule as before: the last section whose top has passed (top - 100).
-        for (let i = 0; i < sectionTops.length; i++) {
-            if (y >= sectionTops[i].top - 100) current = sectionTops[i].id;
+        for (const section of tops) {
+            if (y >= section.top - 100) current = section.id;
         }
-        if (current === currentId) return; // nothing changed: no DOM writes
+        if (current === currentId) return;
         currentId = current;
-        const target = '#' + current;
         navLinks.forEach(link => {
-            link.classList.toggle('active', link.getAttribute('href') === target);
+            link.classList.toggle('active', link.getAttribute('href') === `#${current}`);
         });
-    }
+    };
 
-    function onScroll() {
-        if (ticking) return;
-        ticking = true;
-        window.requestAnimationFrame(updateActive);
-    }
+    measure();
+    update();
 
-    function remeasure() {
-        measureSections();
-        onScroll();
-    }
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(update);
+        }
+    }, { passive: true });
 
-    measureSections();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', remeasure, { passive: true });
+    const remeasure = () => { measure(); update(); };
+    window.addEventListener('resize', remeasure);
     window.addEventListener('load', remeasure);
-    // Sections change height as data loads in and as demo/agent detail views
-    // open, so re-measure when the page's total height changes.
-    if (typeof ResizeObserver === 'function') {
-        let pending = false;
-        new ResizeObserver(() => {
-            if (pending) return;
-            pending = true;
-            window.requestAnimationFrame(() => { pending = false; remeasure(); });
-        }).observe(document.body);
+    if ('ResizeObserver' in window) {
+        new ResizeObserver(remeasure).observe(document.body);
     }
-    updateActive();
 }
 
 // Toggle mobile menu. Keeps aria-expanded in sync so screen readers announce
