@@ -2718,15 +2718,15 @@ function renderLeadsTable() {
 
     tbody.innerHTML = filteredLeads.map(lead => `
         <tr>
-            <td>${escapeHtml(lead.name)}</td>
-            <td>${escapeHtml(lead.email)}</td>
-            <td>${escapeHtml(lead.phone) || '-'}</td>
-            <td>${escapeHtml(lead.company) || '-'}</td>
-            <td>${escapeHtml(lead.interestedService) || '-'}</td>
-            <td><span class="status-badge status-${lead.status?.toLowerCase()}">${escapeHtml(lead.status)}</span></td>
-            <td><span class="priority-badge priority-${lead.priority?.toLowerCase()}">${escapeHtml(lead.priority)}</span></td>
-            <td>${new Date(lead.createdAt).toLocaleDateString()}</td>
-            <td>
+            <td data-label="Name">${escapeHtml(lead.name)}</td>
+            <td data-label="Email">${escapeHtml(lead.email)}</td>
+            <td data-label="Phone">${escapeHtml(lead.phone) || '-'}</td>
+            <td data-label="Company">${escapeHtml(lead.company) || '-'}</td>
+            <td data-label="Service">${escapeHtml(lead.interestedService) || '-'}</td>
+            <td data-label="Status"><span class="status-badge status-${lead.status?.toLowerCase()}">${escapeHtml(lead.status)}</span></td>
+            <td data-label="Priority"><span class="priority-badge priority-${lead.priority?.toLowerCase()}">${escapeHtml(lead.priority)}</span></td>
+            <td data-label="Created">${new Date(lead.createdAt).toLocaleDateString()}</td>
+            <td data-label="Actions" class="table-actions-cell">
                 <button class="action-button" onclick="editLead('${lead.id}')">Edit</button>
                 <button class="action-button delete" onclick="deleteLead('${lead.id}')">Delete</button>
             </td>
@@ -2886,16 +2886,19 @@ function renderInquiriesTable() {
         return;
     }
 
+    // Column order below matches the table's real <thead> exactly (Name, Email, Phone,
+    // Subject, Service, Status, Created, Actions) -- it used to be Date/Budget-first,
+    // which didn't match the headers at all and showed the wrong label over each value.
     tbody.innerHTML = filteredInquiries.map(inquiry => `
         <tr>
-            <td>${new Date(inquiry.createdAt).toLocaleDateString()}</td>
-            <td>${escapeHtml(inquiry.name)}</td>
-            <td>${escapeHtml(inquiry.email)}</td>
-            <td>${escapeHtml(inquiry.phone || '-')}</td>
-            <td>${escapeHtml(inquiry.service || '-')}</td>
-            <td>${escapeHtml(inquiry.budget || '-')}</td>
-            <td><span class="status-badge status-${(inquiry.status || 'new').toLowerCase()}">${escapeHtml(inquiry.status || 'New')}</span></td>
-            <td>
+            <td data-label="Name">${escapeHtml(inquiry.name)}</td>
+            <td data-label="Email">${escapeHtml(inquiry.email)}</td>
+            <td data-label="Phone">${escapeHtml(inquiry.phone || '-')}</td>
+            <td data-label="Subject">${escapeHtml(inquiry.subject || '-')}</td>
+            <td data-label="Service">${escapeHtml(inquiry.service || '-')}</td>
+            <td data-label="Status"><span class="status-badge status-${(inquiry.status || 'new').toLowerCase()}">${escapeHtml(inquiry.status || 'New')}</span></td>
+            <td data-label="Created">${new Date(inquiry.createdAt).toLocaleDateString()}</td>
+            <td data-label="Actions">
                 <button class="action-button" onclick="viewInquiry('${inquiry.id}')">View</button>
                 <button class="action-button" onclick="updateInquiryStatus('${inquiry.id}', 'Contacted')">Contacted</button>
                 <button class="action-button" onclick="updateInquiryStatus('${inquiry.id}', 'Completed')">Completed</button>
@@ -3042,12 +3045,12 @@ function renderNotificationsTable() {
 
     tbody.innerHTML = filteredNotifications.map(notif => `
         <tr class="${notif.read ? '' : 'unread-row'}">
-            <td>${escapeHtml(notif.title)}</td>
-            <td>${escapeHtml(notif.message)}</td>
-            <td><span class="type-badge type-${escapeToken(notif.type)}">${escapeHtml(notif.type)}</span></td>
-            <td><span class="status-badge status-${notif.read ? 'read' : 'unread'}">${notif.read ? 'Read' : 'Unread'}</span></td>
-            <td>${new Date(notif.createdAt).toLocaleString()}</td>
-            <td>
+            <td data-label="Title">${escapeHtml(notif.title)}</td>
+            <td data-label="Message">${escapeHtml(notif.message)}</td>
+            <td data-label="Type"><span class="type-badge type-${escapeToken(notif.type)}">${escapeHtml(notif.type)}</span></td>
+            <td data-label="Status"><span class="status-badge status-${notif.read ? 'read' : 'unread'}">${notif.read ? 'Read' : 'Unread'}</span></td>
+            <td data-label="Created">${new Date(notif.createdAt).toLocaleString()}</td>
+            <td data-label="Actions" class="table-actions-cell">
                 <button class="action-button" onclick="toggleNotificationRead('${escapeArg(notif.id)}')">${notif.read ? 'Mark Unread' : 'Mark Read'}</button>
                 <button class="action-button delete" onclick="deleteNotification('${escapeArg(notif.id)}')">Delete</button>
             </td>
