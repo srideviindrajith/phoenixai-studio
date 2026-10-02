@@ -2692,6 +2692,19 @@ app.get('/api/admin/notifications', requireAdmin, (req, res) => {
   res.json(data.notifications || []);
 });
 
+// mark-all-read must be registered BEFORE the /:id route below, otherwise Express
+// matches it as a single notification with id "mark-all-read" and returns 404.
+app.put('/api/admin/notifications/mark-all-read', requireAdmin, (req, res) => {
+  const data = readData();
+
+  if (data.notifications) {
+    data.notifications.forEach(n => n.read = true);
+    writeData(data);
+  }
+
+  res.json({ success: true });
+});
+
 app.put('/api/admin/notifications/:id', requireAdmin, (req, res) => {
   const data = readData();
   const notifIndex = data.notifications.findIndex(n => n.id === req.params.id);
@@ -2708,17 +2721,6 @@ app.put('/api/admin/notifications/:id', requireAdmin, (req, res) => {
   writeData(data);
 
   res.json({ success: true, notification });
-});
-
-app.put('/api/admin/notifications/mark-all-read', requireAdmin, (req, res) => {
-  const data = readData();
-
-  if (data.notifications) {
-    data.notifications.forEach(n => n.read = true);
-    writeData(data);
-  }
-
-  res.json({ success: true });
 });
 
 app.delete('/api/admin/notifications/:id', requireAdmin, (req, res) => {
