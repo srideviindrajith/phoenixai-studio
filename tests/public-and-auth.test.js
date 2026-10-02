@@ -381,3 +381,29 @@ describe('Email alert on a new inquiry (Resend)', () => {
     } finally { await app.close(); await redis.stop(); }
   });
 });
+
+describe('Notifications: mark-all-read route ordering', () => {
+  test('mark-all-read succeeds even though /:id is registered, and individual mark-as-read still works', async () => {
+    const redis = createMockUpstash(); const redisUrl = await redis.start();
+    const app = await startApp({ KV_REST_API_URL: redisUrl, KV_REST_API_TOKEN: 'test-token' });
+    try {
+      const s = await loggedIn(app.base);
+      await call(app.base, s, 'POST', '/api/admin/inquiries', { name: 'A', email: 'a@example.com', message: 'hi' });
+      const notifs = await (await call(app.base, s, 'GET', '/api/admin/notifications')).json();
+      assert.ok(notifs.length >= 1, 'a notification should exist from the inquiry above');
+      assert.equal(notifs[0].read, false);
+
+      const r = await call(app.base, s, 'PUT', '/api/admin/notifications/mark-all-read');
+      const body = await r.json();
+      assert.equal(r.status, 200, 'mark-all-read must not 404 with the message "Notification not found"');
+      assert.equal(body.success, true);
+
+      const after = await (await call(app.base, s, 'GET', '/api/admin/notifications')).json();
+      assert.ok(after.every((n) => n.read === true), 'every notification must now be read');
+
+      const r2 = await call(app.base, s, 'PUT', `/api/admin/notifications/${after[0].id}`, { read: false });
+      assert.equal(r2.status, 200, 'the /:id route must still work for a real notification id');
+      assert.equal((await r2.json()).notification.read, false);
+    } finally { await app.close(); }
+  });
+});
