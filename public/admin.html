@@ -1673,6 +1673,94 @@
                 min-height: 36px;
                 font-size: 18px;
             }
+
+            /* Inquiries / Leads / Notifications: these three tables carry a
+               data-label on every <td> (see admin-script.js), so below this
+               width each row becomes a labelled card instead of a squeezed,
+               unreadable row of columns. */
+            .admin-table thead {
+                display: none;
+            }
+
+            .admin-table,
+            .admin-table tbody,
+            .admin-table tr {
+                display: block;
+                width: 100%;
+            }
+
+            .admin-table {
+                border: none;
+                background: transparent;
+            }
+
+            .admin-table tr {
+                margin-bottom: 14px;
+                padding: 14px 16px;
+                border: 1px solid rgba(255, 106, 0, 0.20);
+                border-radius: 12px;
+                background: linear-gradient(135deg, rgba(20, 17, 14, 0.55), rgba(8, 8, 7, 0.45));
+            }
+
+            .admin-table tr:last-child {
+                margin-bottom: 0;
+            }
+
+            .admin-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 14px;
+                padding: 7px 0;
+                border: none;
+                text-align: right;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .admin-table td::before {
+                content: attr(data-label);
+                flex-shrink: 0;
+                text-align: left;
+                font-weight: 600;
+                font-size: 0.8em;
+                letter-spacing: 0.3px;
+                color: var(--text-muted, #A0A0A0);
+            }
+
+            /* The Actions cell reads better as a label on top and full-width,
+               stacked buttons below, rather than squeezed onto one line. */
+            .admin-table td.table-actions-cell {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding-top: 10px;
+                border-top: 1px solid rgba(255, 106, 0, 0.14);
+                margin-top: 4px;
+            }
+
+            .admin-table td.table-actions-cell::before {
+                margin-bottom: 2px;
+            }
+
+            .admin-table td.table-actions-cell .action-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Notification dropdown: a small box anchored to the bell button
+               could end up positioned off-screen once the header wraps onto
+               several lines on a narrow phone. A bottom sheet avoids that
+               entirely, since it no longer depends on the bell's position. */
+            .notification-dropdown {
+                position: fixed;
+                left: 12px;
+                right: 12px;
+                top: auto;
+                bottom: 12px;
+                width: auto;
+                max-height: min(70vh, 480px);
+            }
         }
 
         @media (max-width: 480px) {
