@@ -1728,6 +1728,21 @@
                 color: var(--text-muted, #A0A0A0);
             }
 
+            /* The value side (plain text, or a status/priority/type badge) must
+               never be allowed to shrink to nothing next to the label -- this is
+               what was making the Status/Priority/Type badges disappear. */
+            .admin-table td > *,
+            .admin-table td {
+                min-width: 0;
+            }
+
+            .admin-table td .status-badge,
+            .admin-table td .priority-badge,
+            .admin-table td .type-badge {
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+
             /* The Actions cell reads better as a label on top and full-width,
                stacked buttons below, rather than squeezed onto one line. */
             .admin-table td.table-actions-cell {
