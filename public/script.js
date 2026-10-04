@@ -409,6 +409,7 @@ async function loadPackages() {
             packageCategoriesList = bootstrapCache.packageCategories;
             renderPackageCategoryTabs();
             renderPackages(filterPackagesByCategory(activePackageCategory));
+            populateInquiryPackageOptions();
             return;
         }
 
@@ -420,12 +421,43 @@ async function loadPackages() {
         packageCategoriesList = await catResponse.json();
         renderPackageCategoryTabs();
         renderPackages(filterPackagesByCategory(activePackageCategory));
+        populateInquiryPackageOptions();
     } catch (error) {
         console.error('Error loading packages:', error);
         const container = document.getElementById('packages-grid');
         if (container) {
             container.innerHTML = '<p class="no-packages">Packages are currently being updated.</p>';
         }
+    }
+}
+
+// Fills the contact form's "Package" dropdown from the same package list shown on
+// the Packages page, so it's never out of sync with what's actually for sale.
+function populateInquiryPackageOptions() {
+    const select = document.getElementById('inquiry-package');
+    if (!select || !Array.isArray(allPackages)) return;
+
+    const previousValue = select.value;
+    const placeholder = select.querySelector('option[value=""]');
+    select.innerHTML = '';
+    if (placeholder) select.appendChild(placeholder);
+    else {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Not sure yet / general inquiry';
+        select.appendChild(opt);
+    }
+
+    allPackages.forEach((pkg) => {
+        if (!pkg || !pkg.name) return;
+        const opt = document.createElement('option');
+        opt.value = pkg.name;
+        opt.textContent = pkg.price ? `${pkg.name} (${pkg.price})` : pkg.name;
+        select.appendChild(opt);
+    });
+
+    if (previousValue && Array.from(select.options).some((o) => o.value === previousValue)) {
+        select.value = previousValue;
     }
 }
 
@@ -618,7 +650,15 @@ function setupNavbarCategoryLinks() {
                         block: 'start'
                     });
                 }
-                // Always close, never toggle — toggling could re-open the menu.
+            }
+
+            // Close the mobile menu after ANY mobile nav link is clicked. This used
+            // to be limited to #home/#packages/#about (and separately #resume/
+            // #portfolio/#cover-letter above), so tapping #demo-websites, #ai-agents,
+            // or any other real section link navigated correctly but left the menu
+            // open over the page. setMobileMenu(false) is safe to call even when a
+            // branch above already closed it.
+            if (this.classList.contains('mobile-nav-link')) {
                 setTimeout(() => setMobileMenu(false), 100);
             }
         });
@@ -930,6 +970,8 @@ if (inquiryForm) {
         const email = document.getElementById('inquiry-email').value.trim();
         const phone = document.getElementById('inquiry-phone').value.trim();
         const service = document.getElementById('inquiry-service').value.trim();
+        const packageSelect = document.getElementById('inquiry-package');
+        const packageName = packageSelect ? packageSelect.value.trim() : '';
         const budget = document.getElementById('inquiry-budget').value.trim();
         const message = document.getElementById('inquiry-message').value.trim();
 
@@ -970,6 +1012,7 @@ if (inquiryForm) {
             email,
             phone,
             service,
+            package: packageName,
             budget,
             message
         };
@@ -1191,10 +1234,14 @@ function showDemoDetail(slug) {
     
     // Hide demo websites full section, show detail section
     document.getElementById('demo-websites-full').style.display = 'none';
-    document.getElementById('demo-website-detail').style.display = 'block';
-    
-    // Scroll to top of detail section
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const detailSection = document.getElementById('demo-website-detail');
+    detailSection.style.display = 'block';
+
+    // Scroll to the detail section itself. This used to call window.scrollTo({top:0}),
+    // which jumps to the very top of the whole page (the hero) rather than to this
+    // section -- on a long page the newly-shown detail content was then out of view,
+    // and it felt like the page had just scrolled for no reason instead of opening it.
+    detailSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function showDemoWebsitesList() {
@@ -1395,10 +1442,13 @@ function showAIAgentDetail(slug) {
     
     // Hide AI agents demo section, show detail section
     document.getElementById('ai-agents-demo').style.display = 'none';
-    document.getElementById('ai-agent-detail').style.display = 'block';
-    
-    // Scroll to top of detail section
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const agentDetailSection = document.getElementById('ai-agent-detail');
+    agentDetailSection.style.display = 'block';
+
+    // See the matching fix in showDemoDetail() above for why this isn't
+    // window.scrollTo({top:0}) -- that jumped to the page's hero section instead
+    // of to the content that had just been revealed.
+    agentDetailSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function showAIAgentsList() {
