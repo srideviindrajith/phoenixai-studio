@@ -726,16 +726,13 @@ function setupCareerBuilderCards() {
                 if (category) {
                     e.preventDefault();
                     
-                    // Update category buttons
-                    const categoryBtns = document.querySelectorAll('.category-btn');
-                    categoryBtns.forEach(btn => {
-                        btn.classList.remove('active');
-                        if (btn.getAttribute('data-category') === category) {
-                            btn.classList.add('active');
-                        }
-                    });
-                    
-                    // Filter templates
+                    // Filter templates. (There is no separate templates category
+                    // filter bar on the page -- these three cards are the only
+                    // way to filter templates -- so there are no "category-btn"
+                    // elements to mark active here. The previous version queried
+                    // every .category-btn on the page, which also matched the
+                    // Demo Websites and AI Agents filter bars elsewhere on the
+                    // page and toggled their "active" state by mistake.)
                     filterTemplates(category);
                     
                     // Scroll to templates section
