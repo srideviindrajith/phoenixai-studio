@@ -883,7 +883,23 @@ function setupAIAgentForm() {
                 body: formData
             });
 
-            const data = await response.json();
+            // A 413 (or any non-JSON body, e.g. a plain-text/HTML error page
+            // returned by the hosting platform before our server code even runs)
+            // means the upload was too large -- response.json() would throw on
+            // that body and previously just showed a generic "please try again"
+            // with no indication of what actually went wrong.
+            if (response.status === 413) {
+                alert('Error saving AI agent: the thumbnail image is too large. Please use an image under 4MB and try again.');
+                return;
+            }
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                alert(`Error saving AI agent: the server returned an unexpected response (status ${response.status}). This usually means the thumbnail image is too large -- try a smaller image (under 4MB).`);
+                return;
+            }
 
             if (data.success) {
                 closeAIAgentModal();
@@ -893,7 +909,7 @@ function setupAIAgentForm() {
             }
         } catch (error) {
             console.error('Error saving AI agent:', error);
-            alert('Error saving AI agent. Please try again.');
+            alert('Error saving AI agent: could not reach the server. Check your connection and try again.');
         } finally {
             submitButton.disabled = false;
             submitButton.textContent = originalText;
@@ -2934,6 +2950,10 @@ function viewInquiry(id) {
             <div class="detail-row">
                 <strong>Service:</strong>
                 <span>${escapeHtml(inquiry.service) || '-'}</span>
+            </div>
+            <div class="detail-row">
+                <strong>Package:</strong>
+                <span>${escapeHtml(inquiry.package) || '-'}</span>
             </div>
             <div class="detail-row">
                 <strong>Budget:</strong>
