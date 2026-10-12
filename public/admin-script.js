@@ -734,7 +734,23 @@ function setupDemoWebsiteForm() {
                 body: formData
             });
 
-            const data = await response.json();
+            // Same reasoning as the AI Agent form fix: a 413 or any non-JSON
+            // response (e.g. a plain-text/HTML error page returned before our
+            // server code even runs) means the upload was too large --
+            // response.json() would throw on that body and previously just
+            // showed a generic "please try again" with no real explanation.
+            if (response.status === 413) {
+                alert('Error saving demo website: the thumbnail image is too large. Please use an image under 4MB and try again.');
+                return;
+            }
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                alert(`Error saving demo website: the server returned an unexpected response (status ${response.status}). This usually means the thumbnail image is too large -- try a smaller image (under 4MB).`);
+                return;
+            }
 
             if (data.success) {
                 closeDemoWebsiteModal();
@@ -744,7 +760,7 @@ function setupDemoWebsiteForm() {
             }
         } catch (error) {
             console.error('Error saving demo website:', error);
-            alert('Error saving demo website. Please try again.');
+            alert('Error saving demo website: could not reach the server. Check your connection and try again.');
         } finally {
             submitButton.disabled = false;
             submitButton.textContent = originalText;
@@ -2076,7 +2092,24 @@ function setupTemplateForm() {
                 });
             }
 
-            const data = await response.json();
+            // This form can upload up to 5 files at once (thumbnail, PDF, multiple
+            // preview images), so it's the most likely of all the forms to hit the
+            // platform's request-size limit. Same reasoning as the AI Agent and
+            // Demo Website form fixes: a 413 or non-JSON response means the files
+            // were too large together, and response.json() would otherwise throw
+            // with a confusing "Unexpected token" message instead of this.
+            if (response.status === 413) {
+                alert('Error saving template: the files are too large together. Please use a smaller thumbnail, PDF, and/or fewer preview images, then try again.');
+                return;
+            }
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                alert(`Error saving template: the server returned an unexpected response (status ${response.status}). This usually means the files are too large together -- try a smaller thumbnail, PDF, or fewer preview images.`);
+                return;
+            }
 
             if (data.success) {
                 closeTemplateModal();
@@ -2217,9 +2250,23 @@ async function uploadLogo() {
             method: 'POST',
             body: formData
         });
-        
-        const data = await response.json();
-        
+
+        // Same reasoning as the other upload forms: a 413 or non-JSON response
+        // means the image was too large, and response.json() would otherwise
+        // throw with a confusing "Unexpected token" message instead of this.
+        if (response.status === 413) {
+            alert('Error uploading logo: the image is too large. Please use an image under 4MB and try again.');
+            return;
+        }
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            alert(`Error uploading logo: the server returned an unexpected response (status ${response.status}). This usually means the image is too large -- try a smaller one (under 4MB).`);
+            return;
+        }
+
         if (data.success) {
             updateLogoDisplay(data.logo);
             alert('Logo updated successfully!');
