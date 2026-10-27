@@ -25,7 +25,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&family=Special+Elite&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
@@ -48,6 +48,16 @@
     </script>
 </head>
 <body>
+    <!-- Custom branded loading screen. Hidden by script.js once the page has
+         loaded (or after a few seconds regardless, so a slow network never
+         leaves a visitor stuck looking at it). -->
+    <div id="page-loader" aria-hidden="true">
+        <img src="/uploads/logo-cutout.png" alt="" class="page-loader-logo" width="140" height="98">
+        <div class="page-loader-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+    <noscript><style>#page-loader{display:none!important;}</style></noscript>
     <!-- Header -->
     <header class="header">
         <div class="container">
