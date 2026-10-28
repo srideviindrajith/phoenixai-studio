@@ -1,4 +1,22 @@
 // PhoenixAI Studio - Public Site JavaScript
+/* Page loader: page load aanadhum hide aagum. Network slow-ah irundhaalum 4 sec-la hide aagum. */
+(function () {
+    var loader = document.getElementById('page-loader');
+    if (!loader) return;
+    var hidden = false;
+
+    function hideLoader() {
+        if (hidden) return;
+        hidden = true;
+        loader.classList.add('page-loader-hidden');
+        setTimeout(function () { loader.style.display = 'none'; }, 600);
+    }
+
+    if (document.readyState === 'complete') hideLoader();
+    else window.addEventListener('load', hideLoader);
+
+    setTimeout(hideLoader, 4000);
+})();
 
 /* -------------------------------------------------------------------------
    Output-escaping helpers.
